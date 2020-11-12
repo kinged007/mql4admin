@@ -38,6 +38,7 @@ if (isset($_COOKIE['series_id']) && isset($_COOKIE['remember_token']))
 
 			$_SESSION['user_logged_in'] = TRUE;
 			$_SESSION['admin_type'] = $row['admin_type'];
+			$_SESSION['user_id'] = $row['id'];
 			header('Location:index.php');
 			exit;
 		}
@@ -69,7 +70,7 @@ include BASE_PATH.'/includes/header.php';
 				</div>
 				<div class="form-group">
 					<label class="control-label">password</label>
-					<input type="password" name="passwd" class="form-control" required="required">
+					<input type="password" name="password" class="form-control" required="required">
 				</div>
 				<div class="checkbox">
 					<label>

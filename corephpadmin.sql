@@ -30,6 +30,7 @@ CREATE TABLE `admin_accounts` (
   `id` int(25) NOT NULL,
   `user_name` varchar(50) NOT NULL,
   `password` varchar(255) NOT NULL,
+  `secret` varchar(255) NOT NULL,
   `series_id` varchar(60) DEFAULT NULL,
   `remember_token` varchar(255) DEFAULT NULL,
   `expires` datetime DEFAULT NULL,
@@ -40,10 +41,10 @@ CREATE TABLE `admin_accounts` (
 -- Dumping data for table `admin_accounts`
 --
 
-INSERT INTO `admin_accounts` (`id`, `user_name`, `password`, `series_id`, `remember_token`, `expires`, `admin_type`) VALUES
-(4, 'superadmin', '$2y$10$eo7.w0Ttuy8mOBMvDlGqDeewQERkXu//7qO3jXp5NC76LwfAZpNrO', 'rvuWJHMd5LTxLC2J', '$2y$10$LDUi4w/UAM2PgfMoKkLo4.igJX39G5/WQOEDHRaDy3y2KZeIxXggm', '2019-02-16 22:39:57', 'super'),
-(7, 'anand', '$2y$10$OrQFRZdSUP3X2kvGZrg.zeplQkxcJAq1s6atRehyCpbEvOVPu8KPe', NULL, NULL, NULL, 'admin'),
-(8, 'admin', '$2y$10$RnDwpen5c8.gtZLaxHEHDOKWY77t/20A4RRkWBsjlPuu7Wmy0HyBu', 'MyG5Xw2I12EWdJeD', '$2y$10$XL/RhpCz.uQoWE1xV77Wje4I4ker.gtg7YV4yqNwLZfzIYnP7E8Na', '2019-08-22 01:12:33', 'admin');
+INSERT INTO `admin_accounts` (`id`, `user_name`, `password`, `secret`, `series_id`, `remember_token`, `expires`, `admin_type`) VALUES
+(4, 'superadmin', '$2y$10$eo7.w0Ttuy8mOBMvDlGqDeewQERkXu//7qO3jXp5NC76LwfAZpNrO',  '6b487e87ec52a84eb2b0773558256afc', 'rvuWJHMd5LTxLC2J', '$2y$10$LDUi4w/UAM2PgfMoKkLo4.igJX39G5/WQOEDHRaDy3y2KZeIxXggm', '2019-02-16 22:39:57', 'super'),
+(7, 'anand', '$2y$10$OrQFRZdSUP3X2kvGZrg.zeplQkxcJAq1s6atRehyCpbEvOVPu8KPe',  '136740e0ec82a20c41e71b298e116e8f', NULL, NULL, NULL, 'admin'),
+(8, 'admin', '$2y$10$RnDwpen5c8.gtZLaxHEHDOKWY77t/20A4RRkWBsjlPuu7Wmy0HyBu',  '3e6b617411acca6d21612060c64f6505', 'MyG5Xw2I12EWdJeD', '$2y$10$XL/RhpCz.uQoWE1xV77Wje4I4ker.gtg7YV4yqNwLZfzIYnP7E8Na', '2019-08-22 01:12:33', 'admin');
 
 -- --------------------------------------------------------
 

@@ -3,7 +3,7 @@ require_once './config/config.php';
 session_start();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	$username = filter_input(INPUT_POST, 'username');
-	$passwd = filter_input(INPUT_POST, 'passwd');
+	$password = filter_input(INPUT_POST, 'password');
 	$remember = filter_input(INPUT_POST, 'remember');
 
 	//echo password_verify('admin', '$2y$10$RnDwpen5c8.gtZLaxHEHDOKWY77t/20A4RRkWBsjlPuu7Wmy0HyBu'); exit;
@@ -20,10 +20,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		$db_password = $row[0]['password'];
 		$user_id = $row[0]['id'];
 
-		if (password_verify($passwd, $db_password)) {
+		if (password_verify($password, $db_password)) {
 
 			$_SESSION['user_logged_in'] = TRUE;
 			$_SESSION['admin_type'] = $row[0]['admin_type'];
+			$_SESSION['user_id'] = $user_id;
 
 			if ($remember) {
 

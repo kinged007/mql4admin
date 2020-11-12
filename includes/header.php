@@ -21,6 +21,9 @@
         <link href="assets/css/sb-admin-2.css" rel="stylesheet">
         <!-- Custom Fonts -->
         <link href="assets/fonts/font-awesome/css/font-awesome.min.css" rel="stylesheet" type="text/css">
+        <link href="assets/fonts/fontawesome/css/fontawesome.min.css" rel="stylesheet" type="text/css">
+        <link href="assets/fonts/fontawesome/css/brands.min.css" rel="stylesheet" type="text/css">
+        <link href="assets/fonts/fontawesome/css/solid.min.css" rel="stylesheet" type="text/css">
 
         <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
         <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -33,7 +36,7 @@
     </head>
 
     <body>
-
+        
         <div id="wrapper">
 
             <!-- Navigation -->
@@ -59,9 +62,9 @@
                                 <i class="fa fa-user fa-fw"></i> <i class="fa fa-caret-down"></i>
                             </a>
                             <ul class="dropdown-menu dropdown-user">
-                                <li><a href="#"><i class="fa fa-user fa-fw"></i> User Profile</a>
+                                <li><a href="edit_profile.php"><i class="fa fa-user fa-fw"></i> User Profile</a>
                                 </li>
-                                <li><a href="#"><i class="fa fa-gear fa-fw"></i> Settings</a>
+                                <li><a href="edit_settings.php"><i class="fa fa-gear fa-fw"></i> Settings</a>
                                 </li>
                                 <li class="divider"></li>
                                 <li><a href="logout.php"><i class="fa fa-sign-out fa-fw"></i> Logout</a>
@@ -94,6 +97,10 @@
                                 <li>
                                     <a href="admin_users.php"><i class="fa fa-users fa-fw"></i> Users</a>
                                 </li>
+                                <li>
+                                    <a href="mql4messages.php"><i class="fas fa-vial fa-fw"></i>MQL4 Incoming Test</a>
+                                </li>
+
                             </ul>
                         </div>
                         <!-- /.sidebar-collapse -->
