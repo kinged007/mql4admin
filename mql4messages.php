@@ -109,10 +109,29 @@ if ($order_by == 'Desc') {
 }
 ?>>Desc</option>
             </select>
-            <input type="submit" value="Go" class="btn btn-primary">
+            <input type="submit" value="Go" class="btn btn-primary">            
         </form>
+          
     </div>
     <hr>
+    <form class="form form-inline" action="" method="GET">
+        <?php 
+            $autoupdate = isset($_GET['autoupdate']) && $_GET['autoupdate'] == 1 ? true : false;
+        ?>
+        <input type="hidden" name="autoupdate" value="<?php echo ($autoupdate)?"0":"1"; ?>" />
+        <button type="submit" class="btn btn-<?php echo ($autoupdate) ? "danger" : "success";  ?>" >
+            Auto-update 
+                <span class="glyphicon glyphicon-<?php echo $autoupdate ? "remove" : "refresh"; ?>"></span>
+        </button>
+        <?php
+            if( $autoupdate ){
+                echo "<script>setTimeout(function(){location.reload();}, 2000);</script>";
+            }
+        ?>
+        </button>
+    </form>  
+    <br/>
+
     <!-- //Filters -->
 
     <!-- Table -->
