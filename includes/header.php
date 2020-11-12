@@ -36,7 +36,7 @@
     </head>
 
     <body>
-        
+
         <div id="wrapper">
 
             <!-- Navigation -->
@@ -98,7 +98,7 @@
                                     <a href="admin_users.php"><i class="fa fa-users fa-fw"></i> Users</a>
                                 </li>
                                 <li>
-                                    <a href="mql4messages.php"><i class="fas fa-vial fa-fw"></i>MQL4 Incoming Test</a>
+                                    <a href="mql4messages.php"><i class="fas fa-vial fa-fw"></i>MQL4 Updates</a>
                                 </li>
 
                             </ul>

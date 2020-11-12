@@ -31,7 +31,21 @@ if (!$order_by) {
 
 //Get DB instance. i.e instance of MYSQLiDB Library
 $db = getDbInstance();
-$select = array('id','user_id', 'account', 'server', 'vps_id', 'balance', 'created_at', 'updated_at');
+$select = array('id',
+    'user_id', 
+    'account', 
+    'server', 
+    'vps_id',
+    'equity',
+    'profit',
+    'currency',
+    'margin',
+    'margin_level',
+    'free_margin',
+    'balance', 
+    'created_at', 
+    'updated_at'
+);
 
 //Start building query according to input parameters.
 // If search string
@@ -59,7 +73,7 @@ include BASE_PATH . '/includes/header.php';
 <div id="page-wrapper">
     <div class="row">
         <div class="col-lg-6">
-            <h1 class="page-header">MQL4 Messages</h1>
+            <h1 class="page-header">MQL4 Updates</h1>
         </div>
         <div class="col-lg-6">
             <div class="page-action-links text-right">
@@ -105,13 +119,19 @@ if ($order_by == 'Desc') {
     <table class="table table-striped table-bordered table-condensed">
         <thead>
             <tr>
-                <th width="5%">ID</th>
-                <th width="15%">Account</th>
-                <th width="20%">Server</th>
-                <th width="20%">VPS</th>
-                <th width="20%">Balance</th>
-                <th width="40%">Last Ping</th>
-                <th width="10%">Actions</th>
+                <th>ID</th>
+                <th>Account</th>
+                <th>Server</th>
+                <th>VPS</th>
+                <th>Balance</th>
+                <th>Equity</th>
+                <th>Profit</th>
+                <th>Currency</th>
+                <th>Margin</th>
+                <th>Margin_level</th>
+                <th>Free_margin</th>
+                <th>Last Ping</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -122,6 +142,12 @@ if ($order_by == 'Desc') {
                 <td><?php echo htmlspecialchars($row['server']); ?></td>
                 <td><?php echo htmlspecialchars($row['vps_id']); ?></td>
                 <td><?php echo htmlspecialchars($row['balance']); ?></td>
+                <td><?php echo htmlspecialchars($row['equity']); ?></td>
+                <td><?php echo htmlspecialchars($row['profit']); ?></td>
+                <td><?php echo htmlspecialchars($row['currency']); ?></td>
+                <td><?php echo htmlspecialchars($row['margin']); ?></td>
+                <td><?php echo htmlspecialchars($row['margin_level']); ?></td>
+                <td><?php echo htmlspecialchars($row['free_margin']); ?></td>
                 <td><?php echo htmlspecialchars($row['updated_at']); ?></td>
                 <td>
                     <a href="edit_customer.php?customer_id=<?php echo $row['id']; ?>&operation=edit" class="btn btn-primary"><i class="glyphicon glyphicon-edit"></i></a>
