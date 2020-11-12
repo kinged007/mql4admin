@@ -10,10 +10,6 @@ define('CURRENT_PAGE', basename($_SERVER['REQUEST_URI']));
 require_once BASE_PATH . '/lib/MysqliDb/MysqliDb.php';
 require_once BASE_PATH . '/helpers/helpers.php';
 
-
-// MQL4 Admin
-define('MQL4SECRET',"jb&01091hfa&^(!nsaqwf");
-
 /*
 |--------------------------------------------------------------------------
 | DATABASE CONFIGURATION
@@ -21,8 +17,8 @@ define('MQL4SECRET',"jb&01091hfa&^(!nsaqwf");
  */
 
 define('DB_HOST', "localhost");
-define('DB_USER', "root");
-define('DB_PASSWORD', "mysql");
+define('DB_USER', "mql4admin_");
+define('DB_PASSWORD', "4f9?9hRl");
 define('DB_NAME', "mql4admin");
 
 /**
