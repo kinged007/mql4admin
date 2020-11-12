@@ -35,7 +35,6 @@ CREATE TABLE `mql4message` (
   `free_margin` varchar(55) NOT NULL,
   `leverage` varchar(55) NOT NULL,
   `name` varchar(55) NOT NULL,
-  `number` varchar(55) NOT NULL,
   `profit` varchar(55) NOT NULL,
   `stopout_call` varchar(55) NOT NULL,
   `stopout_stopout` varchar(55) NOT NULL,
