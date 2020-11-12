@@ -1,5 +1,9 @@
 <?php
 
+print_r($_POST);
+
+die();
+
 require_once 'config/config.php';
 require_once BASE_PATH . '/includes/mql4_auth_validate.php';
 
