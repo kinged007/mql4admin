@@ -8,7 +8,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 	$username = filter_input(INPUT_POST, 'username');
 	$secret = filter_input(INPUT_POST, 'secret');
 
-	//echo password_verify('admin', '$2y$10$RnDwpen5c8.gtZLaxHEHDOKWY77t/20A4RRkWBsjlPuu7Wmy0HyBu'); exit;
+	if( !isset($_POST['username']) || !isset($_POST['secret'])){
+		exit("POST Data inconsistent.");
+	}
 
 	//Get DB instance.
 	$db = getDbInstance();
@@ -22,20 +24,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 		$user_id = $row[0]['id'];
 		$stored_secret = $row[0]['secret'];
 
-		if ( md5($stored_secret) == $secret ) {
+		if ( $stored_secret == $secret ) {
 
 			//Authentication successfull
 
 
 		} else {
 		
-			exit("Invalid user name or secret");
+			exit("Invalid user name or secret."); // secret
 
 		}
 
 		//exit("0");
 	} else {
-		exit("Invalid user name or secret");
+		exit("Invalid user name or secret"); // username
 	}
 
 } else {
