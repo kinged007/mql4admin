@@ -51,7 +51,6 @@
                         </button>
                         <a class="navbar-brand" href="">
                             <?php echo ucfirst($_SESSION['user_name']); ?>
-                                
                         </a>
                     </div>
                     <!-- /.navbar-header -->
