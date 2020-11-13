@@ -55,6 +55,9 @@ if ($search_string) {
     $db->orwhere('vps_id', '%' . $search_string . '%', 'like');
 }
 
+// select by user
+$db->where('user_id',$_SESSION['user_id']);
+
 //If order by option selected
 if ($order_by) {
 	$db->orderBy($filter_col, $order_by);
@@ -125,7 +128,7 @@ if ($order_by == 'Desc') {
         </button>
         <?php
             if( $autoupdate ){
-                echo "<script>setTimeout(function(){location.reload();}, 2000);</script>";
+                echo "<script>setTimeout(function(){location.reload();}, 60000);</script>";
             }
         ?>
         </button>
