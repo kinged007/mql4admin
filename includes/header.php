@@ -49,7 +49,10 @@
                             <span class="icon-bar"></span>
                             <span class="icon-bar"></span>
                         </button>
-                        <a class="navbar-brand" href="">Administrator</a>
+                        <a class="navbar-brand" href="">
+                            <?php echo ucfirst($_SESSION['user_name']); ?>
+                                
+                        </a>
                     </div>
                     <!-- /.navbar-header -->
 
