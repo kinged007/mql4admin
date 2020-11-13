@@ -159,18 +159,41 @@ if ($order_by == 'Desc') {
         <tbody>
             <?php foreach ($rows as $row): ?>
             <tr>
+                <?php
+                    $dd_color = "none";
+                    if( $row['equity'] <= $row['balance']*0.8 ){
+                        $dd_color = "yellow";
+                    }
+                    if( $row['equity'] <= $row['balance']*0.7 ){
+                        $dd_color = "orange";
+                    }
+                    if( $row['equity'] <= $row['balance']*0.6 ){
+                        $dd_color = "red";
+                    }
+                ?>
                 <td><?php echo $row['id']; ?></td>
                 <td><?php echo htmlspecialchars($row['account']); ?></td>
                 <td><?php echo htmlspecialchars($row['server']); ?></td>
                 <td><?php echo htmlspecialchars($row['vps_id']); ?></td>
-                <td><?php echo htmlspecialchars($row['balance']); ?></td>
-                <td><?php echo htmlspecialchars($row['equity']); ?></td>
-                <td><?php echo htmlspecialchars($row['profit']); ?></td>
+                <td style="background-color: <?=$dd_color;?>"><?php echo htmlspecialchars($row['balance']); ?></td>
+                <td style="background-color: <?=$dd_color;?>"><?php echo htmlspecialchars($row['equity']); ?></td>
+                <td style="background-color: <?=$dd_color;?>"><?php echo htmlspecialchars($row['profit']); ?></td>
                 <td><?php echo htmlspecialchars($row['currency']); ?></td>
                 <td><?php echo htmlspecialchars($row['margin']); ?></td>
                 <td><?php echo htmlspecialchars($row['margin_level']); ?></td>
                 <td><?php echo htmlspecialchars($row['free_margin']); ?></td>
-                <td><?php echo htmlspecialchars($row['updated_at']); ?></td>
+                
+                    <?php
+                        $last_update = empty($row['updated_at']) ? $row['created_at'] : $row['updated_at'];
+                        $style = "";
+                        if( strtotime($last_update) < time()-(60*15)){
+                            $style = " style='background-color:red;'";
+                        }
+                    ?>
+                <td<?= $style; ?>>
+
+                    <?php echo htmlspecialchars($last_update); ?>
+                </td>
                 <td>
                     <a href="edit_customer.php?customer_id=<?php echo $row['id']; ?>&operation=edit" class="btn btn-primary"><i class="glyphicon glyphicon-edit"></i></a>
                     <a href="#" class="btn btn-danger delete_btn" data-toggle="modal" data-target="#confirm-delete-<?php echo $row['id']; ?>"><i class="glyphicon glyphicon-trash"></i></a>
