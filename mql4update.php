@@ -53,6 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($user_id) )
     $db = getDbInstance();
     $db->where('account', $data_to_update['account']);
     $db->where('server', $data_to_update['server']);
+    $db->where('vps_id', $data_to_update['vps_id']);
     $db->where('user_id', $user_id);
     //print_r($data_to_update['user_name']);die();
     $row = $db->getOne('mql4message');
