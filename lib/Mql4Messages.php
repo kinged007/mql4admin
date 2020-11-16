@@ -27,9 +27,11 @@ class Mql4Messages
             'vps_id' => 'VPS',
             'balance' => 'Balance',
             'equity' => 'Equity',
+            'profit' => 'Profit/Loss',
             'currency' => 'Currency',
             'created_at' => 'Created at',
-            'updated_at' => 'Updated at'
+            'updated_at' => 'Updated at',
+            'timestamp' => 'Last Ping'
         ];
 
         return $ordering;

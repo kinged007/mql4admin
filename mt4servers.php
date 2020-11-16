@@ -31,10 +31,14 @@ if (!$order_by) {
 
 //Get DB instance. i.e instance of MYSQLiDB Library
 $db = getDbInstance();
-$select = array('id',
+
+// $servers = $db->setQueryOption('DISTINCT')->where('user_id',$_SESSION['user_id'])->orderBy("timestamp","Desc")->get("mql4message",1000,"vps_id, timestamp");
+// print_r($servers);
+
+$select = array(
+    'id',
     'user_id', 
     'account', 
-    'name', 
     'server', 
     'vps_id',
     'equity',
@@ -47,6 +51,9 @@ $select = array('id',
     'timestamp', 
 );
 
+$db->setTrace (true);
+
+
 //Start building query according to input parameters.
 // If search string
 if ($search_string) {
@@ -57,6 +64,7 @@ if ($search_string) {
 
 // select by user
 $db->where('user_id',$_SESSION['user_id']);
+$db->setQueryOption ('DISTINCT');
 
 //If order by option selected
 if ($order_by) {
@@ -70,6 +78,11 @@ $db->pageLimit = $pagelimit;
 $rows = $db->arraybuilder()->paginate('mql4message', $page, $select);
 $total_pages = $db->totalPages;
 
+print_r ($db->trace);
+print_r($rows);
+
+die();
+
 include BASE_PATH . '/includes/header.php';
 ?>
 <!-- Main container -->
@@ -78,11 +91,11 @@ include BASE_PATH . '/includes/header.php';
         <div class="col-lg-6">
             <h1 class="page-header">MQL4 Updates</h1>
         </div>
-        <!-- <div class="col-lg-6">
+        <div class="col-lg-6">
             <div class="page-action-links text-right">
                 <a href="add_customer.php?operation=create" class="btn btn-success"><i class="glyphicon glyphicon-plus"></i> Add new</a>
             </div>
-        </div> -->
+        </div>
     </div>
     <?php include BASE_PATH . '/includes/flash_messages.php';?>
 
@@ -122,18 +135,6 @@ if ($order_by == 'Desc') {
             $autoupdate = isset($_GET['autoupdate']) && $_GET['autoupdate'] == 1 ? true : false;
         ?>
         <input type="hidden" name="autoupdate" value="<?php echo ($autoupdate)?"0":"1"; ?>" />
-        <?php 
-            $query = array();
-            if( isset($_GET['search_string'] ) ) $query["search_string"] = $_GET['search_string'];
-            if( isset($_GET['filter_col']    ) ) $query["filter_col"] = $_GET['filter_col'];
-            if( isset($_GET['order_by']      ) ) $query["order_by"] = $_GET['order_by'];
-            if( !empty($query) ){
-                foreach ($query as $key => $value) {
-                    echo "<input type='hidden' name='{$key}' value='{$value}'/>";
-                }
-            } 
-            
-        ?>
         <button type="submit" class="btn btn-<?php echo ($autoupdate) ? "danger" : "success";  ?>" >
             Auto-update 
                 <span class="glyphicon glyphicon-<?php echo $autoupdate ? "remove" : "refresh"; ?>"></span>
@@ -153,9 +154,8 @@ if ($order_by == 'Desc') {
     <table class="table table-striped table-bordered table-condensed">
         <thead>
             <tr>
-                <!-- <th>ID</th> -->
+                <th>ID</th>
                 <th>Account</th>
-                <th>Name</th>
                 <th>Server</th>
                 <th>VPS</th>
                 <th>Balance</th>
@@ -163,8 +163,8 @@ if ($order_by == 'Desc') {
                 <th>Profit</th>
                 <th>Currency</th>
                 <th>Margin</th>
-                <th>Free_margin</th>
                 <th>Margin_level</th>
+                <th>Free_margin</th>
                 <th>Last Ping</th>
                 <th>Actions</th>
             </tr>
@@ -184,9 +184,8 @@ if ($order_by == 'Desc') {
                         $dd_color = "red";
                     }
                 ?>
-                <!-- <td><?php echo $row['id']; ?></td> -->
+                <td><?php echo $row['id']; ?></td>
                 <td><?php echo htmlspecialchars($row['account']); ?></td>
-                <td><?php echo htmlspecialchars($row['name']); ?></td>
                 <td><?php echo htmlspecialchars($row['server']); ?></td>
                 <td><?php echo htmlspecialchars($row['vps_id']); ?></td>
                 <td style="background-color: <?=$dd_color;?>"><?php echo htmlspecialchars($row['balance']); ?></td>
@@ -194,8 +193,8 @@ if ($order_by == 'Desc') {
                 <td style="background-color: <?=$dd_color;?>"><?php echo htmlspecialchars($row['profit']); ?></td>
                 <td><?php echo htmlspecialchars($row['currency']); ?></td>
                 <td><?php echo htmlspecialchars($row['margin']); ?></td>
+                <td><?php echo htmlspecialchars($row['margin_level']); ?></td>
                 <td><?php echo htmlspecialchars($row['free_margin']); ?></td>
-                <td><?php echo htmlspecialchars($row['margin_level']); ?> %</td>
                 
                     <?php
                         $last_update = $row['timestamp'];
