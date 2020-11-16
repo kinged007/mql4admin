@@ -102,7 +102,9 @@
                                 <li>
                                     <a href="mql4messages.php"><i class="fas fa-vial fa-fw"></i>MQL4 Updates</a>
                                 </li>
-
+                                <li>
+                                    <a href="mt4servers.php"><i class="fas fa-vial fa-fw"></i>Servers</a>
+                                </li>
                             </ul>
                         </div>
                         <!-- /.sidebar-collapse -->
