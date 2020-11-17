@@ -1,11 +1,17 @@
 <fieldset>
     <div class="form-group">
+        <label for="friendly_name">Friendly Name</label>
+          <input type="text" name="friendly_name" value="<?php echo htmlspecialchars($edit ? $mql4['friendly_name'] : '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="Account Number" class="form-control" id = "friendly_name" >
+    </div> 
+    <div class="form-group">
         <label for="account">Account Number</label>
           <input type="text" name="account" value="<?php echo htmlspecialchars($edit ? $mql4['account'] : '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="Account Number" class="form-control" disabled="disabled" id = "account" >
+          <input type='hidden' name='account' value='<?php echo htmlspecialchars($edit ? $mql4['account'] : '', ENT_QUOTES, 'UTF-8'); ?>'/>
     </div> 
     <div class="form-group">
         <label for="account">Server</label>
           <input type="text" name="server" value="<?php echo htmlspecialchars($edit ? $mql4['server'] : '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="Server" class="form-control" disabled="disabled" id = "server" >
+          <input type='hidden' name='server' value='<?php echo htmlspecialchars($edit ? $mql4['server'] : '', ENT_QUOTES, 'UTF-8'); ?>'/>
     </div> 
     <div class="form-group">
         <label for="account">VPS</label>

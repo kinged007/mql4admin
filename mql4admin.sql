@@ -25,6 +25,7 @@ CREATE TABLE `mql4message` (
   `user_id` int(10) NOT NULL,
   `account` varchar(55) NOT NULL,
   `server` varchar(55) NOT NULL,
+  `friendly_name` varchar(55) NOT NULL,
   `balance` varchar(55) NOT NULL,
   `credit` varchar(55) NOT NULL,
   `company` varchar(255) NOT NULL,

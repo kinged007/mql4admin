@@ -45,6 +45,7 @@ $select = array('id',
     'free_margin',
     'balance', 
     'timestamp', 
+    'friendly_name', 
 );
 
 //Start building query according to input parameters.
@@ -54,6 +55,9 @@ if ($search_string) {
     $db->orwhere('server', '%' . $search_string . '%', 'like');
     $db->orwhere('vps_id', '%' . $search_string . '%', 'like');
 }
+if( isset($_GET['demo']) ){
+    $db->where('account_type', 'demo', '!=');
+}
 
 // select by user
 $db->where('user_id',$_SESSION['user_id']);
@@ -62,6 +66,7 @@ $db->where('user_id',$_SESSION['user_id']);
 if ($order_by) {
 	$db->orderBy($filter_col, $order_by);
 }
+
 
 // Set pagination limit
 $db->pageLimit = $pagelimit;
@@ -76,7 +81,7 @@ include BASE_PATH . '/includes/header.php';
 <div id="page-wrapper">
     <div class="row">
         <div class="col-lg-6">
-            <h1 class="page-header">MQL4 Updates</h1>
+            <h1 class="page-header">MT4 Terminals</h1>
         </div>
         <!-- <div class="col-lg-6">
             <div class="page-action-links text-right">
@@ -112,6 +117,7 @@ if ($order_by == 'Desc') {
 }
 ?>>Desc</option>
             </select>
+            <label>Only REAL accounts: <input type="checkbox" name="demo" <?php if(isset($_GET['demo'])) echo "checked='checked'"; ?>/></label>
             <input type="submit" value="Go" class="btn btn-primary">            
         </form>
           
@@ -127,6 +133,7 @@ if ($order_by == 'Desc') {
             if( isset($_GET['search_string'] ) ) $query["search_string"] = $_GET['search_string'];
             if( isset($_GET['filter_col']    ) ) $query["filter_col"] = $_GET['filter_col'];
             if( isset($_GET['order_by']      ) ) $query["order_by"] = $_GET['order_by'];
+            if( isset($_GET['demo']          ) ) $query["demo"] = $_GET['demo'];
             if( !empty($query) ){
                 foreach ($query as $key => $value) {
                     echo "<input type='hidden' name='{$key}' value='{$value}'/>";
@@ -153,7 +160,7 @@ if ($order_by == 'Desc') {
     <table class="table table-striped table-bordered table-condensed">
         <thead>
             <tr>
-                <!-- <th>ID</th> -->
+                <th>Friendly Name</th>
                 <th>Account</th>
                 <th>Name</th>
                 <th>Server</th>
@@ -184,7 +191,7 @@ if ($order_by == 'Desc') {
                         $dd_color = "red";
                     }
                 ?>
-                <!-- <td><?php echo $row['id']; ?></td> -->
+                <td><?php echo $row['friendly_name']; ?></td>
                 <td><?php echo htmlspecialchars($row['account']); ?></td>
                 <td><?php echo htmlspecialchars($row['name']); ?></td>
                 <td><?php echo htmlspecialchars($row['server']); ?></td>
