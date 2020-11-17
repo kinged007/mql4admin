@@ -49,10 +49,13 @@ $select = array(
     'free_margin',
     'balance', 
     'timestamp', 
+    'friendly_name', 
 );
 
 $db->setTrace (true);
 
+// select by user
+$db->where('user_id',$_SESSION['user_id']);
 
 //Start building query according to input parameters.
 // If search string
@@ -60,11 +63,13 @@ if ($search_string) {
 	$db->where('account', '%' . $search_string . '%', 'like');
     $db->orwhere('server', '%' . $search_string . '%', 'like');
     $db->orwhere('vps_id', '%' . $search_string . '%', 'like');
+    $db->orwhere('friendly_name', '%' . $search_string . '%', 'like');
+    $db->orwhere('currency', '%' . $search_string . '%', 'like');
 }
 
-// select by user
-$db->where('user_id',$_SESSION['user_id']);
-$db->setQueryOption ('DISTINCT');
+if( isset($_GET['demo']) ){
+    $db->where('account_type', 'demo', '!=');
+}
 
 //If order by option selected
 if ($order_by) {
@@ -78,10 +83,22 @@ $db->pageLimit = $pagelimit;
 $rows = $db->arraybuilder()->paginate('mql4message', $page, $select);
 $total_pages = $db->totalPages;
 
-print_r ($db->trace);
-print_r($rows);
+$rows2 = array();
+foreach ($rows as $row){
 
-die();
+    if( !isset($rows2[$row['server']]) ) $rows2[$row['server']] = $row;
+
+    if( strtotime($rows2[$row['server']]['timestamp']) < strtotime($row['timestamp']) ) $rows2[$row['server']] = $row;
+
+
+}
+
+//print_r ($db->trace);
+//print_r($rows2);
+
+
+
+//die();
 
 include BASE_PATH . '/includes/header.php';
 ?>
@@ -89,7 +106,7 @@ include BASE_PATH . '/includes/header.php';
 <div id="page-wrapper">
     <div class="row">
         <div class="col-lg-6">
-            <h1 class="page-header">MQL4 Updates</h1>
+            <h1 class="page-header">Trading Accounts</h1>
         </div>
         <div class="col-lg-6">
             <div class="page-action-links text-right">
@@ -125,6 +142,7 @@ if ($order_by == 'Desc') {
 }
 ?>>Desc</option>
             </select>
+            <label>Only REAL accounts: <input type="checkbox" name="demo" <?php if(isset($_GET['demo'])) echo "checked='checked'"; ?>/></label>
             <input type="submit" value="Go" class="btn btn-primary">            
         </form>
           
@@ -134,6 +152,19 @@ if ($order_by == 'Desc') {
         <?php 
             $autoupdate = isset($_GET['autoupdate']) && $_GET['autoupdate'] == 1 ? true : false;
         ?>
+        <?php 
+            $query = array();
+            if( isset($_GET['search_string'] ) ) $query["search_string"] = $_GET['search_string'];
+            if( isset($_GET['filter_col']    ) ) $query["filter_col"] = $_GET['filter_col'];
+            if( isset($_GET['order_by']      ) ) $query["order_by"] = $_GET['order_by'];
+            if( isset($_GET['demo']          ) ) $query["demo"] = $_GET['demo'];
+            if( !empty($query) ){
+                foreach ($query as $key => $value) {
+                    echo "<input type='hidden' name='{$key}' value='{$value}'/>";
+                }
+            } 
+            
+        ?>        
         <input type="hidden" name="autoupdate" value="<?php echo ($autoupdate)?"0":"1"; ?>" />
         <button type="submit" class="btn btn-<?php echo ($autoupdate) ? "danger" : "success";  ?>" >
             Auto-update 
@@ -154,10 +185,9 @@ if ($order_by == 'Desc') {
     <table class="table table-striped table-bordered table-condensed">
         <thead>
             <tr>
-                <th>ID</th>
+                <th>Friendly Name</th>
                 <th>Account</th>
                 <th>Server</th>
-                <th>VPS</th>
                 <th>Balance</th>
                 <th>Equity</th>
                 <th>Profit</th>
@@ -170,7 +200,7 @@ if ($order_by == 'Desc') {
             </tr>
         </thead>
         <tbody>
-            <?php foreach ($rows as $row): ?>
+            <?php foreach ($rows2 as $row): ?>
             <tr>
                 <?php
                     $dd_color = "none";
@@ -184,10 +214,9 @@ if ($order_by == 'Desc') {
                         $dd_color = "red";
                     }
                 ?>
-                <td><?php echo $row['id']; ?></td>
+                <td><?php echo $row['friendly_name']; ?></td>
                 <td><?php echo htmlspecialchars($row['account']); ?></td>
                 <td><?php echo htmlspecialchars($row['server']); ?></td>
-                <td><?php echo htmlspecialchars($row['vps_id']); ?></td>
                 <td style="background-color: <?=$dd_color;?>"><?php echo htmlspecialchars($row['balance']); ?></td>
                 <td style="background-color: <?=$dd_color;?>"><?php echo htmlspecialchars($row['equity']); ?></td>
                 <td style="background-color: <?=$dd_color;?>"><?php echo htmlspecialchars($row['profit']); ?></td>

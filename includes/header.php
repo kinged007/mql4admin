@@ -100,10 +100,10 @@
                                     <a href="admin_users.php"><i class="fa fa-users fa-fw"></i> Users</a>
                                 </li>
                                 <li>
-                                    <a href="mql4messages.php"><i class="fas fa-vial fa-fw"></i>MQL4 Updates</a>
+                                    <a href="mql4messages.php"><i class="fas fa-network-wired fa-fw"></i> MT4 Terminals</a>
                                 </li>
                                 <li>
-                                    <a href="mt4servers.php"><i class="fas fa-vial fa-fw"></i>Servers</a>
+                                    <a href="mt4servers.php"><i class="fas fa-briefcase fa-fw"></i> Trading Accounts</a>
                                 </li>
                             </ul>
                         </div>

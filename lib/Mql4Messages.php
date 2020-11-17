@@ -31,7 +31,8 @@ class Mql4Messages
             'currency' => 'Currency',
             'created_at' => 'Created at',
             'updated_at' => 'Updated at',
-            'timestamp' => 'Last Ping'
+            'timestamp' => 'Last Ping',
+            'friendly_name' => 'Friendly Name',
         ];
 
         return $ordering;
