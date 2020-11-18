@@ -229,7 +229,7 @@ if ($order_by == 'Desc') {
                         $badge = "info";
                     }
                     if( $row['equity'] <= $row['balance']*0.7 ){
-                        $dd_color = "#FFCC33";
+                        $dd_color = "#FF9999";
                         $badge = "warning";
                     }
                     if( $row['equity'] <= $row['balance']*0.6 ){
@@ -331,7 +331,7 @@ if ($order_by == 'Desc') {
 
             ?>
             <?php endforeach;?>
-            <tr style="background-color: #eee; font-weight: bold;">
+            <tr style="background-color: #ccc; font-weight: bold;">
                 <td>TOTAL</td>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
@@ -344,7 +344,7 @@ if ($order_by == 'Desc') {
                         $badge = "info";
                     }
                     if( $equity <= $balance*0.7 ){
-                        $dd_color = "#FFCC33";
+                        $dd_color = "#FF9999";
                         $badge = "warning";
                     }
                     if( $equity <= $balance*0.6 ){
@@ -374,7 +374,7 @@ if ($order_by == 'Desc') {
                             $badge = "info";
                         }
                         if( $d_equity <= $d_balance*0.7 ){
-                            $dd_color = "#FFCC33";
+                            $dd_color = "#FF9999";
                             $badge = "warning";
                         }
                         if( $d_equity <= $d_balance*0.6 ){
