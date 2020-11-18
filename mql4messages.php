@@ -125,33 +125,40 @@ if ($order_by == 'Desc') {
     </div>
     <hr>
     <form class="form form-inline" action="" method="GET">
-        <?php 
-            $autoupdate = isset($_GET['autoupdate']) && $_GET['autoupdate'] == 1 ? true : false;
-        ?>
-        <input type="hidden" name="autoupdate" value="<?php echo ($autoupdate)?"0":"1"; ?>" />
-        <?php 
-            $query = array();
-            if( isset($_GET['search_string'] ) ) $query["search_string"] = $_GET['search_string'];
-            if( isset($_GET['filter_col']    ) ) $query["filter_col"] = $_GET['filter_col'];
-            if( isset($_GET['order_by']      ) ) $query["order_by"] = $_GET['order_by'];
-            if( isset($_GET['demo']          ) ) $query["demo"] = $_GET['demo'];
-            if( !empty($query) ){
-                foreach ($query as $key => $value) {
-                    echo "<input type='hidden' name='{$key}' value='{$value}'/>";
+        <div class="clearfix">
+            <?php 
+                $autoupdate = isset($_GET['autoupdate']) && $_GET['autoupdate'] == 1 ? true : false;
+            ?>
+            <input type="hidden" name="autoupdate" value="<?php echo ($autoupdate)?"0":"1"; ?>" />
+            <?php 
+                $query = array();
+                if( isset($_GET['search_string'] ) ) $query["search_string"] = $_GET['search_string'];
+                if( isset($_GET['filter_col']    ) ) $query["filter_col"] = $_GET['filter_col'];
+                if( isset($_GET['order_by']      ) ) $query["order_by"] = $_GET['order_by'];
+                if( isset($_GET['demo']          ) ) $query["demo"] = $_GET['demo'];
+                if( !empty($query) ){
+                    foreach ($query as $key => $value) {
+                        echo "<input type='hidden' name='{$key}' value='{$value}'/>";
+                    }
+                } 
+                
+            ?>
+            <div class="pull-left float-left">
+                <button type="submit" class="btn btn-<?php echo ($autoupdate) ? "danger" : "success";  ?>" >
+                    Auto-update 
+                        <span class="glyphicon glyphicon-<?php echo $autoupdate ? "remove" : "refresh"; ?>"></span>
+                </button>
+            </div>
+            <div class="pull-right float-right text-right">
+                Server Time: <span class="badge badge-primary" style="padding: 8px;"><?= date('Y-m-d H:i:s'); ?></span>
+            </div>
+            <?php
+                if( $autoupdate ){
+                    echo "<script>setTimeout(function(){location.reload();}, 60000);</script>";
                 }
-            } 
-            
-        ?>
-        <button type="submit" class="btn btn-<?php echo ($autoupdate) ? "danger" : "success";  ?>" >
-            Auto-update 
-                <span class="glyphicon glyphicon-<?php echo $autoupdate ? "remove" : "refresh"; ?>"></span>
-        </button>
-        <?php
-            if( $autoupdate ){
-                echo "<script>setTimeout(function(){location.reload();}, 60000);</script>";
-            }
-        ?>
-        </button>
+            ?>
+        </div>
+
     </form>  
     <br/>
 

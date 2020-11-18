@@ -1,7 +1,7 @@
 <fieldset>
     <div class="form-group">
         <label for="friendly_name">Friendly Name</label>
-          <input type="text" name="friendly_name" value="<?php echo htmlspecialchars($edit ? $mql4['friendly_name'] : '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="Account Number" class="form-control" id = "friendly_name" >
+          <input type="text" name="friendly_name" value="<?php echo htmlspecialchars($edit ? $mql4['friendly_name'] : '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="Friendly Name" class="form-control" id = "friendly_name" >
     </div> 
     <div class="form-group">
         <label for="account">Account Number</label>

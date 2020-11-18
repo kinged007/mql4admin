@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
 
     //Get input data
     $data_to_update = filter_input_array(INPUT_POST);
-$db->setTrace(true);
+// $db->setTrace(true);
     $data_to_update['updated_at'] = date('Y-m-d H:i:s');
     $db = getDbInstance();
     $db->where('user_id',$_SESSION['user_id']);
@@ -27,7 +27,7 @@ $db->setTrace(true);
     $db->where('server',$data_to_update['server']);
 
     $stat = $db->update('mql4message', $data_to_update);
-//print_r ($_REQUEST); print_r ($db->trace);die();
+//  print_r ($_REQUEST); print_r ($db->trace);die();
     if($stat)
     {
         $_SESSION['success'] = "MQL4 entry updated successfully!";
