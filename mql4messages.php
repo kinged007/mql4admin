@@ -187,7 +187,8 @@ if ($order_by == 'Desc') {
         <tbody>
             <?php foreach ($rows as $row): ?>
             <?php if($row['account_type'] == 'demo' )  $demo = true; else $demo = false; ?>
-            <tr<?= ($demo) ? " style='background-color:#00FFFF;font-style:italic;'" : ""; ?>>                <?php
+            <tr<?= ($demo) ? " style='background-color:#00FFFF;font-style:italic;'" : ""; ?>>    
+                <?php
                     $dd_color = "none";
                     if( $row['equity'] <= $row['balance']*0.8 ){
                         $dd_color = "#FFFF99";
@@ -204,13 +205,14 @@ if ($order_by == 'Desc') {
                 <td><?php echo htmlspecialchars($row['name']); ?></td>
                 <td><?php echo htmlspecialchars($row['server']); ?></td>
                 <td><?php echo htmlspecialchars($row['vps_id']); ?></td>
-                <td style="background-color: <?=$dd_color;?>"><?php echo htmlspecialchars($row['balance']); ?></td>
-                <td style="background-color: <?=$dd_color;?>"><?php echo htmlspecialchars($row['equity']); ?></td>
-                <td style="background-color: <?=$dd_color;?>"><?php echo htmlspecialchars($row['profit']); ?></td>
+                <td style="background-color: <?=$dd_color;?>"><?php echo number_format(htmlspecialchars($row['balance']),2); ?></td>
+                <td style="background-color: <?=$dd_color;?>"><?php echo number_format(htmlspecialchars($row['equity']),2); ?></td>
+                <td style="background-color: <?=$dd_color;?>"><?php echo number_format(htmlspecialchars($row['profit']),2); ?></td>
                 <td><?php echo htmlspecialchars($row['currency']); ?></td>
-                <td><?php echo htmlspecialchars($row['margin']); ?></td>
-                <td><?php echo htmlspecialchars($row['free_margin']); ?></td>
-                <td><?php echo htmlspecialchars($row['margin_level']); ?> %</td>
+                <td><?php echo number_format(htmlspecialchars($row['margin']),2); ?></td>
+                <td><?php echo number_format(htmlspecialchars($row['free_margin']),2); ?></td>
+                <td><?php echo number_format(htmlspecialchars($row['margin_level']),2); ?> %</td>
+
                 
                     <?php
                         $last_update = $row['timestamp'];
