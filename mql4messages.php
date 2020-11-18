@@ -194,7 +194,7 @@ if ($order_by == 'Desc') {
                         $badge = "info";
                     }
                     if( $row['equity'] <= $row['balance']*0.7 ){
-                        $dd_color = "#FFCC33";
+                        $dd_color = "#FF9999";
                         $badge = "warning";
                     }
                     if( $row['equity'] <= $row['balance']*0.6 ){
