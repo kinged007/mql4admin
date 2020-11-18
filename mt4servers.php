@@ -44,13 +44,16 @@ $select = array(
     'equity',
     'profit',
     'currency',
-    'margin',
+    'open_trades',
     'margin_level',
     'free_margin',
     'balance', 
     'timestamp', 
     'friendly_name', 
     'account_type',
+    'start_balance_day',
+    'start_balance_week',
+    'start_balance_month',
 
 );
 
@@ -101,9 +104,11 @@ foreach ($rows as $row){
 $balance = 0;
 $equity = 0;
 $profit = 0;
+$trades = 0;
 $d_balance = 0;
 $d_equity = 0;
 $d_profit = 0;
+$d_trades = 0;
 
 
 //die();
@@ -116,7 +121,7 @@ include BASE_PATH . '/includes/header.php';
         <div class="col-lg-6">
             <h1 class="page-header">Trading Accounts</h1>
         </div>
-        <<!-- div class="col-lg-6">
+        <!-- div class="col-lg-6">
             <div class="page-action-links text-right">
                 <a href="add_customer.php?operation=create" class="btn btn-success"><i class="glyphicon glyphicon-plus"></i> Add new</a>
             </div>
@@ -182,7 +187,7 @@ if ($order_by == 'Desc') {
                 </button>
             </div>
             <div class="pull-right float-right text-right">
-                Server Time: <span class="badge badge-primary" style="padding: 8px;"><?= date('Y-m-d H:i:s'); ?></span>
+                Server Time: <span class="badge badge-info" style="padding: 8px;"><?= date('Y-m-d H:i:s'); ?></span>
             </div>
             <?php
                 if( $autoupdate ){
@@ -203,12 +208,11 @@ if ($order_by == 'Desc') {
                 <th>Account</th>
                 <th>Server</th>
                 <th>Balance</th>
-                <th>Equity</th>
-                <th>Profit</th>
                 <th>Currency</th>
-                <th>Margin</th>
+                <th>Open Trades</th>
                 <th>Free_margin</th>
                 <th>Margin_level</th>
+                <th>P/L</th>
                 <th>Last Ping</th>
                 <th>Actions</th>
             </tr>
@@ -219,26 +223,56 @@ if ($order_by == 'Desc') {
             <tr<?= ($demo) ? " style='background-color:#00FFFF;font-style:italic;'" : ""; ?>>
                 <?php
                     $dd_color = "none";
+                    $badge = "secondary";
                     if( $row['equity'] <= $row['balance']*0.8 ){
                         $dd_color = "#FFFF99";
+                        $badge = "info";
                     }
                     if( $row['equity'] <= $row['balance']*0.7 ){
                         $dd_color = "#FFCC33";
+                        $badge = "warning";
                     }
                     if( $row['equity'] <= $row['balance']*0.6 ){
                         $dd_color = "#FF3333";
+                        $badge = "danger";
                     }
+                    $current_balance = (is_numeric($row['balance']))?htmlspecialchars($row['balance']):0;
+                    $current_equity = (is_numeric($row['equity']))?htmlspecialchars($row['equity']):0;
+                    $current_profit = (is_numeric($row['profit']))?htmlspecialchars($row['profit']):0;
+
                 ?>
                 <td><?php echo $row['friendly_name']; ?></td>
                 <td><?php echo htmlspecialchars($row['account']); ?></td>
                 <td><?php echo htmlspecialchars($row['server']); ?></td>
-                <td style="background-color: <?=$dd_color;?>"><?php echo number_format(htmlspecialchars($row['balance']),2); ?></td>
-                <td style="background-color: <?=$dd_color;?>"><?php echo number_format(htmlspecialchars($row['equity']),2); ?> <span class="badge badge-primary"><?=  number_format(htmlspecialchars($row['equity'])/htmlspecialchars($row['balance'])*100,1); ?>%</span></td>
-                <td style="background-color: <?=$dd_color;?>"><?php echo number_format(htmlspecialchars($row['profit']),2); ?></td>
+                <td style="background-color: <?=$dd_color;?>">
+                    <span class="badge badge-primary">Balance</span> <?php echo number_format($current_balance,2); ?><br/>
+                    <span class="badge badge-info">Profit</span> <?php echo number_format($current_profit,2); ?><br/>
+                    <span class="badge badge-dark">Equity</span> <?php echo number_format($current_equity,2); ?> 
+
+                    <?php
+                        $dd = ($current_balance-$current_equity)/$current_balance*100;
+                    ?>                        
+                    <span class="badge badge-<?= $badge; ?>">
+                        <?php echo number_format(($dd<100)?-$dd:$dd,1);  ?>%
+                    </span><br/>
+                </td>
                 <td><?php echo htmlspecialchars($row['currency']); ?></td>
-                <td><?php echo number_format(htmlspecialchars($row['margin']),2); ?></td>
+                <td><?php echo htmlspecialchars($row['open_trades']); ?></td>
                 <td><?php echo number_format(htmlspecialchars($row['free_margin']),2); ?></td>
                 <td><?php echo number_format(htmlspecialchars($row['margin_level']),2); ?> %</td>
+                <td>
+                    <?php
+                        $start_balance_day = (is_numeric($row['start_balance_day']))?htmlspecialchars($row['start_balance_day']):0;
+                        $start_balance_week = (is_numeric($row['start_balance_week']))?htmlspecialchars($row['start_balance_week']):0;
+                        $start_balance_month = (is_numeric($row['start_balance_month']))?htmlspecialchars($row['start_balance_month']):0;
+                        if( $start_balance_day > 0 )
+                            echo "<span class='badge badge-secondary'>Day</span> ".number_format(($current_balance-$start_balance_day)/$start_balance_day*100,2)."%<br/>"; 
+                       if( $start_balance_week > 0 )
+                            echo "<span class='badge badge-primary'>Week</span> ".number_format(($current_balance-$start_balance_week)/$start_balance_week*100,2)."%<br/>"; 
+                       if( $start_balance_month > 0 )
+                            echo "<span class='badge badge-success'>Month</span> ".number_format(($current_balance-$start_balance_month)/$start_balance_month*100,2)."%<br/>";                                                     
+                    ?>
+                </td>
                 
                     <?php
                         $last_update = $row['timestamp'];
@@ -286,10 +320,12 @@ if ($order_by == 'Desc') {
                     $d_balance += $row['balance'];
                     $d_equity += $row['equity'];
                     $d_profit += $row['profit'];
+                    $d_trades += $row['open_trades'];
                 } else {
                     $balance += $row['balance'];
                     $equity += $row['equity'];
                     $profit += $row['profit'];
+                    $trades += $row['open_trades'];
                 }
 
 
@@ -299,17 +335,77 @@ if ($order_by == 'Desc') {
                 <td>TOTAL</td>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
-                <td><?php echo number_format($balance,2); 
-                    if($d_balance!=0) echo "<br/>DEMO: ".number_format($d_balance,2); 
-                ?></td>
-                <td>
-                    <?php echo number_format($equity,2); ?>
-                    <span class="badge badge-primary"><?= number_format($equity/$balance*100,1); ?>%</span>
-                    <?php if($d_equity!=0) echo "<br/>DEMO: ".number_format($d_equity,2); ?>
+
+                <?php
+                    $dd_color = "none";
+                    $badge = "secondary";
+                    if( $equity <= $balance*0.8 ){
+                        $dd_color = "#FFFF99";
+                        $badge = "info";
+                    }
+                    if( $equity <= $balance*0.7 ){
+                        $dd_color = "#FFCC33";
+                        $badge = "warning";
+                    }
+                    if( $equity <= $balance*0.6 ){
+                        $dd_color = "#FF3333";
+                        $badge = "danger";
+                    }                    
+                ?>
+                <td style="background-color: <?=$dd_color;?>">
+                    <span class="badge badge-primary">Balance</span> 
+                        <?php echo number_format($balance,2); ?><br/>
+                    <span class="badge badge-info">Profit</span> <?php echo number_format($profit,2); ?><br/>
+                    <span class="badge badge-dark">Equity</span> <?php echo number_format($equity,2); ?> 
+
+                    <?php
+                        $dd = ($balance-$equity)/$balance*100;
+                    ?>                        
+                    <span class="badge badge-<?= $badge; ?>">
+                        <?php echo number_format(($dd<100)?-$dd:$dd,1);  ?>%
+                    </span><br/>
                 </td>
-                <td><?php echo number_format($profit,2);  
-                    if($d_profit!=0) echo "<br/>DEMO: ".number_format($d_profit,2); ?></td>
-                <td>&nbsp;</td>
+                <?php
+                    if( !empty($d_balance)){
+                        $dd_color = "none";
+                        $badge = "secondary";
+                        if( $d_equity <= $d_balance*0.8 ){
+                            $dd_color = "#FFFF99";
+                            $badge = "info";
+                        }
+                        if( $d_equity <= $d_balance*0.7 ){
+                            $dd_color = "#FFCC33";
+                            $badge = "warning";
+                        }
+                        if( $d_equity <= $d_balance*0.6 ){
+                            $dd_color = "#FF3333";
+                            $badge = "danger";
+                        }                    
+                    }
+                ?>
+                <td style="background-color: <?= (!empty($d_balance))?$dd_color:"none";?>">
+                    <?php if( !empty($d_balance)) : ?>
+                        DEMO<br/>
+                        <span class="badge badge-primary">Balance</span> 
+                            <?php echo number_format($d_balance,2); ?><br/>
+                        <span class="badge badge-info">Profit</span> <?php echo number_format($d_profit,2); ?><br/>
+                        <span class="badge badge-dark">Equity</span> <?php echo number_format($d_equity,2); ?> 
+
+                        <?php
+                            $dd = ($d_balance-$d_equity)/$d_balance*100;
+                        ?>                        
+                        <span class="badge badge-<?= $badge; ?>">
+                            <?php echo number_format(($dd<100)?-$dd:$dd,1);  ?>%
+                        </span><br/>
+                    <?php endif; ?>
+                </td>
+
+                <td>
+                    <?php
+                        echo $trades;
+                        echo (!empty($d_trades)) ? "<br/>DEMO: ".$d_trades : "";
+                    ?>
+                </td>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>

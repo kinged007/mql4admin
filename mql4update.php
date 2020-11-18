@@ -62,6 +62,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($user_id) )
 
     $data_to_update['timestamp'] = date('Y-m-d H:i:s');
 
+    // balance for day/week/month
+    if( time() > strtotime( 'monday this week' ) && strtotime($row['updated_at']) < strtotime( 'monday this week' ) ){
+        $data_to_update['start_balance_week'] = $data_to_update['balance'];
+    }
+    if( time() > strtotime( 'today' ) && strtotime($row['updated_at']) < strtotime( 'today' ) ){
+        $data_to_update['start_balance_day'] = $data_to_update['balance'];
+    }
+    if( time() > strtotime(date('Y-m-1')) && strtotime($row['updated_at']) < strtotime(date('Y-m-1')) ){
+        $data_to_update['start_balance_month'] = $data_to_update['balance'];
+    }
+
     // Update
     if (!empty($row['account'])) {
 
