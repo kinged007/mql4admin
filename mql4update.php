@@ -60,6 +60,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($user_id) )
     //print_r($data_to_update['account']);
     //print_r($row); die();
 
+    $data_to_update['timestamp'] = date('Y-m-d H:i:s');
+
     // Update
     if (!empty($row['account'])) {
 

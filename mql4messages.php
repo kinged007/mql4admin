@@ -46,6 +46,7 @@ $select = array('id',
     'balance', 
     'timestamp', 
     'friendly_name', 
+    'account_type',
 );
 
 //Start building query according to input parameters.
@@ -178,17 +179,17 @@ if ($order_by == 'Desc') {
         </thead>
         <tbody>
             <?php foreach ($rows as $row): ?>
-            <tr>
-                <?php
+            <?php if($row['account_type'] == 'demo' )  $demo = true; else $demo = false; ?>
+            <tr<?= ($demo) ? " style='background-color:#00FFFF;font-style:italic;'" : ""; ?>>                <?php
                     $dd_color = "none";
                     if( $row['equity'] <= $row['balance']*0.8 ){
-                        $dd_color = "yellow";
+                        $dd_color = "#FFFF99";
                     }
                     if( $row['equity'] <= $row['balance']*0.7 ){
-                        $dd_color = "orange";
+                        $dd_color = "#FFCC33";
                     }
                     if( $row['equity'] <= $row['balance']*0.6 ){
-                        $dd_color = "red";
+                        $dd_color = "#FF3333";
                     }
                 ?>
                 <td><?php echo $row['friendly_name']; ?></td>
@@ -208,7 +209,7 @@ if ($order_by == 'Desc') {
                         $last_update = $row['timestamp'];
                         $style = "";
                         if( strtotime($last_update) < time()-(60*15)){
-                            $style = " style='background-color:red;'";
+                            $style = " style='background-color:#FF3333;'";
                         }
                     ?>
                 <td<?= $style; ?>>
