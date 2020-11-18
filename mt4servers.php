@@ -101,6 +101,9 @@ foreach ($rows as $row){
 $balance = 0;
 $equity = 0;
 $profit = 0;
+$d_balance = 0;
+$d_equity = 0;
+$d_profit = 0;
 
 
 //die();
@@ -113,11 +116,11 @@ include BASE_PATH . '/includes/header.php';
         <div class="col-lg-6">
             <h1 class="page-header">Trading Accounts</h1>
         </div>
-        <div class="col-lg-6">
+        <<!-- div class="col-lg-6">
             <div class="page-action-links text-right">
                 <a href="add_customer.php?operation=create" class="btn btn-success"><i class="glyphicon glyphicon-plus"></i> Add new</a>
             </div>
-        </div>
+        </div> -->
     </div>
     <?php include BASE_PATH . '/includes/flash_messages.php';?>
 
@@ -217,31 +220,31 @@ if ($order_by == 'Desc') {
                 <?php
                     $dd_color = "none";
                     if( $row['equity'] <= $row['balance']*0.8 ){
-                        $dd_color = "yellow";
+                        $dd_color = "#FFFF99";
                     }
                     if( $row['equity'] <= $row['balance']*0.7 ){
-                        $dd_color = "orange";
+                        $dd_color = "#FFCC33";
                     }
                     if( $row['equity'] <= $row['balance']*0.6 ){
-                        $dd_color = "red";
+                        $dd_color = "#FF3333";
                     }
                 ?>
                 <td><?php echo $row['friendly_name']; ?></td>
                 <td><?php echo htmlspecialchars($row['account']); ?></td>
                 <td><?php echo htmlspecialchars($row['server']); ?></td>
-                <td style="background-color: <?=$dd_color;?>"><?php echo htmlspecialchars($row['balance']); ?></td>
-                <td style="background-color: <?=$dd_color;?>"><?php echo htmlspecialchars($row['equity']); ?></td>
-                <td style="background-color: <?=$dd_color;?>"><?php echo htmlspecialchars($row['profit']); ?></td>
+                <td style="background-color: <?=$dd_color;?>"><?php echo number_format(htmlspecialchars($row['balance']),2); ?></td>
+                <td style="background-color: <?=$dd_color;?>"><?php echo number_format(htmlspecialchars($row['equity']),2); ?></td>
+                <td style="background-color: <?=$dd_color;?>"><?php echo number_format(htmlspecialchars($row['profit']),2); ?></td>
                 <td><?php echo htmlspecialchars($row['currency']); ?></td>
-                <td><?php echo htmlspecialchars($row['margin']); ?></td>
-                <td><?php echo htmlspecialchars($row['free_margin']); ?></td>
-                <td><?php echo htmlspecialchars($row['margin_level']); ?> %</td>
+                <td><?php echo number_format(htmlspecialchars($row['margin']),2); ?></td>
+                <td><?php echo number_format(htmlspecialchars($row['free_margin']),2); ?></td>
+                <td><?php echo number_format(htmlspecialchars($row['margin_level']),2); ?> %</td>
                 
                     <?php
                         $last_update = $row['timestamp'];
                         $style = "";
                         if( strtotime($last_update) < time()-(60*15)){
-                            $style = " style='background-color:red;'";
+                            $style = " style='background-color:#FF3333;'";
                         }
                     ?>
                 <td<?= $style; ?>>
@@ -279,9 +282,16 @@ if ($order_by == 'Desc') {
             <!-- //Delete Confirmation Modal -->
             <?php
 
-                $balance += $row['balance'];
-                $equity += $row['equity'];
-                $profit += $row['profit'];
+                if( $demo ) {
+                    $d_balance += $row['balance'];
+                    $d_equity += $row['equity'];
+                    $d_profit += $row['profit'];
+                } else {
+                    $balance += $row['balance'];
+                    $equity += $row['equity'];
+                    $profit += $row['profit'];
+                }
+
 
             ?>
             <?php endforeach;?>
@@ -289,9 +299,13 @@ if ($order_by == 'Desc') {
                 <td>TOTAL</td>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
-                <td><?php echo $balance; ?></td>
-                <td><?php echo $equity; ?></td>
-                <td><?php echo $profit; ?></td>                    
+                <td><?php echo number_format($balance,2); 
+                    if($d_balance!=0) echo "<br/>DEMO: ".number_format($d_balance,2); 
+                ?></td>
+                <td><?php echo number_format($equity,2);  
+                    if($d_equity!=0) echo "<br/>DEMO: ".number_format($d_equity,2); ?></td>
+                <td><?php echo number_format($profit,2);  
+                    if($d_profit!=0) echo "<br/>DEMO: ".number_format($d_profit,2); ?></td>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
