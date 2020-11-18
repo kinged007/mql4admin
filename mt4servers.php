@@ -50,6 +50,8 @@ $select = array(
     'balance', 
     'timestamp', 
     'friendly_name', 
+    'account_type',
+
 );
 
 $db->setTrace (true);
@@ -96,6 +98,9 @@ foreach ($rows as $row){
 //print_r ($db->trace);
 //print_r($rows2);
 
+$balance = 0;
+$equity = 0;
+$profit = 0;
 
 
 //die();
@@ -193,15 +198,16 @@ if ($order_by == 'Desc') {
                 <th>Profit</th>
                 <th>Currency</th>
                 <th>Margin</th>
-                <th>Margin_level</th>
                 <th>Free_margin</th>
+                <th>Margin_level</th>
                 <th>Last Ping</th>
                 <th>Actions</th>
             </tr>
         </thead>
         <tbody>
             <?php foreach ($rows2 as $row): ?>
-            <tr>
+            <?php if($row['account_type'] == 'demo' )  $demo = true; else $demo = false; ?>
+            <tr<?= ($demo) ? " style='background-color:#00FFFF;font-style:italic;'" : ""; ?>>
                 <?php
                     $dd_color = "none";
                     if( $row['equity'] <= $row['balance']*0.8 ){
@@ -222,8 +228,8 @@ if ($order_by == 'Desc') {
                 <td style="background-color: <?=$dd_color;?>"><?php echo htmlspecialchars($row['profit']); ?></td>
                 <td><?php echo htmlspecialchars($row['currency']); ?></td>
                 <td><?php echo htmlspecialchars($row['margin']); ?></td>
-                <td><?php echo htmlspecialchars($row['margin_level']); ?></td>
                 <td><?php echo htmlspecialchars($row['free_margin']); ?></td>
+                <td><?php echo htmlspecialchars($row['margin_level']); ?> %</td>
                 
                     <?php
                         $last_update = $row['timestamp'];
@@ -265,7 +271,28 @@ if ($order_by == 'Desc') {
                 </div>
             </div>
             <!-- //Delete Confirmation Modal -->
+            <?php
+
+                $balance += $row['balance'];
+                $equity += $row['equity'];
+                $profit += $row['profit'];
+
+            ?>
             <?php endforeach;?>
+            <tr style="background-color: #eee; font-weight: bold;">
+                <td>TOTAL</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td><?php echo $balance; ?></td>
+                <td><?php echo $equity; ?></td>
+                <td><?php echo $profit; ?></td>                    
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+                <td>&nbsp;</td>
+            </tr>
         </tbody>
     </table>
     <!-- //Table -->
