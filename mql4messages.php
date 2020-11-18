@@ -206,7 +206,7 @@ if ($order_by == 'Desc') {
                 <td><?php echo htmlspecialchars($row['server']); ?></td>
                 <td><?php echo htmlspecialchars($row['vps_id']); ?></td>
                 <td style="background-color: <?=$dd_color;?>"><?php echo number_format(htmlspecialchars($row['balance']),2); ?></td>
-                <td style="background-color: <?=$dd_color;?>"><?php echo number_format(htmlspecialchars($row['equity']),2); ?></td>
+                <td style="background-color: <?=$dd_color;?>"><?php echo number_format(htmlspecialchars($row['equity']),2); ?> <span class="badge badge-primary"><?=  number_format(htmlspecialchars($row['equity'])/htmlspecialchars($row['balance'])*100,1); ?>%</span></td>
                 <td style="background-color: <?=$dd_color;?>"><?php echo number_format(htmlspecialchars($row['profit']),2); ?></td>
                 <td><?php echo htmlspecialchars($row['currency']); ?></td>
                 <td><?php echo number_format(htmlspecialchars($row['margin']),2); ?></td>
@@ -217,6 +217,10 @@ if ($order_by == 'Desc') {
                     <?php
                         $last_update = $row['timestamp'];
                         $style = "";
+                        if( strtotime($last_update) < time()-(60*5)){
+                            $style = " style='background-color:#FFCC99;'";
+                        }
+
                         if( strtotime($last_update) < time()-(60*15)){
                             $style = " style='background-color:#FF3333;'";
                         }

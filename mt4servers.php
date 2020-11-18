@@ -233,7 +233,7 @@ if ($order_by == 'Desc') {
                 <td><?php echo htmlspecialchars($row['account']); ?></td>
                 <td><?php echo htmlspecialchars($row['server']); ?></td>
                 <td style="background-color: <?=$dd_color;?>"><?php echo number_format(htmlspecialchars($row['balance']),2); ?></td>
-                <td style="background-color: <?=$dd_color;?>"><?php echo number_format(htmlspecialchars($row['equity']),2); ?></td>
+                <td style="background-color: <?=$dd_color;?>"><?php echo number_format(htmlspecialchars($row['equity']),2); ?> <span class="badge badge-primary"><?=  number_format(htmlspecialchars($row['equity'])/htmlspecialchars($row['balance'])*100,1); ?>%</span></td>
                 <td style="background-color: <?=$dd_color;?>"><?php echo number_format(htmlspecialchars($row['profit']),2); ?></td>
                 <td><?php echo htmlspecialchars($row['currency']); ?></td>
                 <td><?php echo number_format(htmlspecialchars($row['margin']),2); ?></td>
@@ -302,8 +302,11 @@ if ($order_by == 'Desc') {
                 <td><?php echo number_format($balance,2); 
                     if($d_balance!=0) echo "<br/>DEMO: ".number_format($d_balance,2); 
                 ?></td>
-                <td><?php echo number_format($equity,2);  
-                    if($d_equity!=0) echo "<br/>DEMO: ".number_format($d_equity,2); ?></td>
+                <td>
+                    <?php echo number_format($equity,2); ?>
+                    <span class="badge badge-primary"><?= number_format($equity/$balance*100,1); ?>%</span>
+                    <?php if($d_equity!=0) echo "<br/>DEMO: ".number_format($d_equity,2); ?>
+                </td>
                 <td><?php echo number_format($profit,2);  
                     if($d_profit!=0) echo "<br/>DEMO: ".number_format($d_profit,2); ?></td>
                 <td>&nbsp;</td>
