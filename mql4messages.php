@@ -40,7 +40,7 @@ $select = array('id',
     'equity',
     'profit',
     'currency',
-    'margin',
+    'open_trades',
     'margin_level',
     'free_margin',
     'balance', 
@@ -174,10 +174,8 @@ if ($order_by == 'Desc') {
                 <th>Server</th>
                 <th>VPS</th>
                 <th>Balance</th>
-                <th>Equity</th>
-                <th>Profit</th>
                 <th>Currency</th>
-                <th>Margin</th>
+                <th>Open Trades</th>
                 <th>Free_margin</th>
                 <th>Margin_level</th>
                 <th>Last Ping</th>
@@ -190,26 +188,42 @@ if ($order_by == 'Desc') {
             <tr<?= ($demo) ? " style='background-color:#00FFFF;font-style:italic;'" : ""; ?>>    
                 <?php
                     $dd_color = "none";
+                    $badge = "secondary";
                     if( $row['equity'] <= $row['balance']*0.8 ){
                         $dd_color = "#FFFF99";
+                        $badge = "info";
                     }
                     if( $row['equity'] <= $row['balance']*0.7 ){
                         $dd_color = "#FFCC33";
+                        $badge = "warning";
                     }
                     if( $row['equity'] <= $row['balance']*0.6 ){
                         $dd_color = "#FF3333";
+                        $badge = "danger";
                     }
+                    $current_balance = (is_numeric($row['balance']))?htmlspecialchars($row['balance']):0;
+                    $current_equity = (is_numeric($row['equity']))?htmlspecialchars($row['equity']):0;
+                    $current_profit = (is_numeric($row['profit']))?htmlspecialchars($row['profit']):0;
                 ?>
                 <td><?php echo $row['friendly_name']; ?></td>
                 <td><?php echo htmlspecialchars($row['account']); ?></td>
                 <td><?php echo htmlspecialchars($row['name']); ?></td>
                 <td><?php echo htmlspecialchars($row['server']); ?></td>
                 <td><?php echo htmlspecialchars($row['vps_id']); ?></td>
-                <td style="background-color: <?=$dd_color;?>"><?php echo number_format(htmlspecialchars($row['balance']),2); ?></td>
-                <td style="background-color: <?=$dd_color;?>"><?php echo number_format(htmlspecialchars($row['equity']),2); ?> <span class="badge badge-primary"><?=  number_format(htmlspecialchars($row['equity'])/htmlspecialchars($row['balance'])*100,1); ?>%</span></td>
-                <td style="background-color: <?=$dd_color;?>"><?php echo number_format(htmlspecialchars($row['profit']),2); ?></td>
+                <td style="background-color: <?=$dd_color;?>">
+                    <span class="badge badge-primary">Balance</span> <?php echo number_format($current_balance,2); ?><br/>
+                    <span class="badge badge-info">Profit</span> <?php echo number_format($current_profit,2); ?><br/>
+                    <span class="badge badge-dark">Equity</span> <?php echo number_format($current_equity,2); ?> 
+
+                    <?php
+                        $dd = ($current_balance-$current_equity)/$current_balance*100;
+                    ?>                        
+                    <span class="badge badge-<?= $badge; ?>">
+                        <?php echo number_format(($dd<100)?-$dd:$dd,1);  ?>%
+                    </span><br/>
+                </td>
                 <td><?php echo htmlspecialchars($row['currency']); ?></td>
-                <td><?php echo number_format(htmlspecialchars($row['margin']),2); ?></td>
+                <td><?php echo htmlspecialchars($row['open_trades']); ?></td>
                 <td><?php echo number_format(htmlspecialchars($row['free_margin']),2); ?></td>
                 <td><?php echo number_format(htmlspecialchars($row['margin_level']),2); ?> %</td>
 
