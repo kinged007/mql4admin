@@ -191,13 +191,15 @@ if ($order_by == 'Desc') {
                     Auto-update 
                         <span class="glyphicon glyphicon-<?php echo $autoupdate ? "remove" : "refresh"; ?>"></span>
                 </button>
+                <input type='number' value="<?= isset($_GET['interval'])?$_GET['interval']:60;?>" name="interval" class="form-control" style="width:5em;" max="300" min="1" /> <span class="small">seconds</span>
+                 
             </div>
             <div class="pull-right float-right text-right">
                 Server Time: <span class="badge badge-info" style="padding: 8px;"><?= date('Y-m-d H:i:s'); ?></span>
             </div>
             <?php
                 if( $autoupdate ){
-                    echo "<script>setTimeout(function(){location.reload();}, 60000);</script>";
+                    echo "<script>setTimeout(function(){location.reload();}, ".(isset($_GET['interval'])?$_GET['interval']*1000:60000).");</script>";
                 }
             ?>
         </div>

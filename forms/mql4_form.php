@@ -124,7 +124,8 @@
         </label>
         <label for="account">Last Connection to Server
           <input type="text" name="timestamp" value="<?php echo htmlspecialchars($edit ? $mql4['timestamp'] : '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="0" class="form-control" disabled="disabled" id = "timestamp" >
-        </label>       
+        </label>   
+            
         <label for="ignore_account">Ignore  </label>  
           <input type="checkbox" name="ignore_account" <?php echo htmlspecialchars($edit&&$mql4['ignore_account']==1 ? 'checked="checked"' : '', ENT_QUOTES, 'UTF-8'); ?> class="form-checkbox" id = "ignore_account" />
                       
