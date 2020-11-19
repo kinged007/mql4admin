@@ -40,9 +40,9 @@ Array
 //serve POST method, After successful insert, redirect to customers.php page.
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($user_id) ) 
 {
-    print_r($_POST);
+
     //Get input data
-    $data_to_update = array_filter($_POST); //filter_input_array(INPUT_POST);
+    $data_to_update = filter_input_array(INPUT_POST); //array_filter($_POST); //filter_input_array(INPUT_POST);
     
     unset($data_to_update['username']);
     unset($data_to_update['secret']);
@@ -59,6 +59,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($user_id) )
     $row = $db->getOne('mql4message');
     //print_r($data_to_update['account']);
     //print_r($row); die();
+
+//var_dump($data_to_update);
 
     $data_to_update['timestamp'] = date('Y-m-d H:i:s');
 
@@ -79,17 +81,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($user_id) )
         $data_to_update['start_balance_year'] = $data_to_update['balance'];
     }
 
-
-
     // Update
     if (!empty($row['account'])) {
 
         $data_to_update['updated_at'] = date('Y-m-d H:i:s');
         $db = getDbInstance();
- $db->setTrace (true);       
+//$db->setTrace (true);       
         $db->where('id',$row['id']);
         $stat = $db->update('mql4message', $data_to_update);
-print_r ($db->trace);
+//print_r ($db->trace);
         if($stat)
         {
             //Important! Don't execute the rest put the exit/die. 

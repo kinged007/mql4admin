@@ -378,6 +378,7 @@ if ($order_by == 'Desc') {
                     }                    
                 ?>
                 <td style="background-color: <?=$dd_color;?>">
+                    REAL<br/>
                     <span class="badge badge-primary">Balance</span> 
                         <?php echo number_format($balance,2); ?><br/>
                     <span class="badge badge-info">Profit</span> <?php echo number_format($profit,2); ?><br/>
@@ -431,7 +432,6 @@ if ($order_by == 'Desc') {
                         echo (!empty($d_trades)) ? "<br/>DEMO: ".$d_trades : "";
                     ?>
                 </td>
-                <td>&nbsp;</td>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
                 <td>&nbsp;</td>
