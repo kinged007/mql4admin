@@ -47,6 +47,9 @@ $select = array(
     'open_trades',
     'margin_level',
     'free_margin',
+    'stopout_call',
+    'stopout_stopout',
+    'stopout_type',
     'balance', 
     'timestamp', 
     'friendly_name', 
@@ -54,6 +57,8 @@ $select = array(
     'start_balance_day',
     'start_balance_week',
     'start_balance_month',
+    'start_balance_3month',
+    'start_balance_year',
 
 );
 
@@ -91,9 +96,9 @@ $total_pages = $db->totalPages;
 $rows2 = array();
 foreach ($rows as $row){
 
-    if( !isset($rows2[$row['server']]) ) $rows2[$row['server']] = $row;
+    if( !isset($rows2[$row['account'].$row['server']]) ) $rows2[$row['account'].$row['server']] = $row;
 
-    if( strtotime($rows2[$row['server']]['timestamp']) < strtotime($row['timestamp']) ) $rows2[$row['server']] = $row;
+    if( strtotime($rows2[$row['account'].$row['server']]['timestamp']) < strtotime($row['timestamp']) ) $rows2[$row['account'].$row['server']] = $row;
 
 
 }
@@ -210,8 +215,7 @@ if ($order_by == 'Desc') {
                 <th>Balance</th>
                 <th>Currency</th>
                 <th>Open Trades</th>
-                <th>Free_margin</th>
-                <th>Margin_level</th>
+                <th>Margin (Stopout)</th>
                 <th>P/L</th>
                 <th>Last Ping</th>
                 <th>Actions</th>
@@ -258,25 +262,40 @@ if ($order_by == 'Desc') {
                 </td>
                 <td><?php echo htmlspecialchars($row['currency']); ?></td>
                 <td><?php echo htmlspecialchars($row['open_trades']); ?></td>
-                <td><?php echo number_format(htmlspecialchars($row['free_margin']),2); ?></td>
-                <td><?php echo number_format(htmlspecialchars($row['margin_level']),2); ?> %</td>
+                <td><?php echo number_format(htmlspecialchars($row['margin_level']),2); ?> %<br/>
+                    (<?php
+                        echo htmlspecialchars($row['stopout_call']."/".$row['stopout_stopout']);
+                        echo "&nbsp;".($row['stopout_type']=='percent')? "%":$row['stopout_type']; 
+                    ?>)
+                </td>
                 <td>
                     <?php
                         $start_balance_day = (is_numeric($row['start_balance_day']))?htmlspecialchars($row['start_balance_day']):0;
                         $start_balance_week = (is_numeric($row['start_balance_week']))?htmlspecialchars($row['start_balance_week']):0;
                         $start_balance_month = (is_numeric($row['start_balance_month']))?htmlspecialchars($row['start_balance_month']):0;
+                        $start_balance_3month = (is_numeric($row['start_balance_3month']))?htmlspecialchars($row['start_balance_3month']):0;
+                        $start_balance_year = (is_numeric($row['start_balance_year']))?htmlspecialchars($row['start_balance_year']):0;
+
                         if( $start_balance_day > 0 )
-                            echo "<span class='badge badge-secondary'>Day</span> ".number_format(($current_balance-$start_balance_day)/$start_balance_day*100,2)."%<br/>"; 
+                            echo "<span class='badge badge-dark'>Day</span> ".number_format(($current_balance-$start_balance_day)/$start_balance_day*100,2)."%<br/>"; 
                        if( $start_balance_week > 0 )
-                            echo "<span class='badge badge-primary'>Week</span> ".number_format(($current_balance-$start_balance_week)/$start_balance_week*100,2)."%<br/>"; 
+                            echo "<span class='badge badge-secondary'>Week</span> ".number_format(($current_balance-$start_balance_week)/$start_balance_week*100,2)."%<br/>"; 
                        if( $start_balance_month > 0 )
-                            echo "<span class='badge badge-success'>Month</span> ".number_format(($current_balance-$start_balance_month)/$start_balance_month*100,2)."%<br/>";                                                     
+                            echo "<span class='badge badge-info'>Month</span> ".number_format(($current_balance-$start_balance_month)/$start_balance_month*100,2)."%<br/>";
+                        if( $start_balance_3month > 0 )
+                            echo "<span class='badge badge-primary'>3Month</span> ".number_format(($current_balance-$start_balance_3month)/$start_balance_3month*100,2)."%<br/>";
+                        if( $start_balance_year > 0 )
+                            echo "<span class='badge badge-success'>Year</span> ".number_format(($current_balance-$start_balance_year)/$start_balance_year*100,2)."%<br/>";                                                     
                     ?>
                 </td>
                 
                     <?php
                         $last_update = $row['timestamp'];
                         $style = "";
+                        if( strtotime($last_update) < time()-(60*5)){
+                            $style = " style='background-color:#FFCC99;'";
+                        }
+
                         if( strtotime($last_update) < time()-(60*15)){
                             $style = " style='background-color:#FF3333;'";
                         }

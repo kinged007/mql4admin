@@ -72,6 +72,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($user_id) )
     if( time() > strtotime(date('Y-m-1')) && strtotime($row['updated_at']) < strtotime(date('Y-m-1')) ){
         $data_to_update['start_balance_month'] = $data_to_update['balance'];
     }
+    if( time() > strtotime(date('Y-m-1')." -3 months") && strtotime($row['updated_at']) < strtotime(date('Y-m-1')." -3 months") ){
+        $data_to_update['start_balance_3month'] = $data_to_update['balance'];
+    }
+    if( time() > strtotime(date('Y-1-1')) && strtotime($row['updated_at']) < strtotime(date('Y-1-1')) ){
+        $data_to_update['start_balance_year'] = $data_to_update['balance'];
+    }
+
 
     // Update
     if (!empty($row['account'])) {

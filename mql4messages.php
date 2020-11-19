@@ -42,6 +42,9 @@ $select = array('id',
     'currency',
     'open_trades',
     'margin_level',
+    'stopout_call',
+    'stopout_stopout',
+    'stopout_type',    
     'free_margin',
     'balance', 
     'timestamp', 
@@ -150,7 +153,7 @@ if ($order_by == 'Desc') {
                 </button>
             </div>
             <div class="pull-right float-right text-right">
-                Server Time: <span class="badge badge-primary" style="padding: 8px;"><?= date('Y-m-d H:i:s'); ?></span>
+                Server Time: <span class="badge badge-info" style="padding: 8px;"><?= date('Y-m-d H:i:s'); ?></span>
             </div>
             <?php
                 if( $autoupdate ){
@@ -176,8 +179,7 @@ if ($order_by == 'Desc') {
                 <th>Balance</th>
                 <th>Currency</th>
                 <th>Open Trades</th>
-                <th>Free_margin</th>
-                <th>Margin_level</th>
+                <th>Margin (Stopout)</th>
                 <th>Last Ping</th>
                 <th>Actions</th>
             </tr>
@@ -224,9 +226,12 @@ if ($order_by == 'Desc') {
                 </td>
                 <td><?php echo htmlspecialchars($row['currency']); ?></td>
                 <td><?php echo htmlspecialchars($row['open_trades']); ?></td>
-                <td><?php echo number_format(htmlspecialchars($row['free_margin']),2); ?></td>
-                <td><?php echo number_format(htmlspecialchars($row['margin_level']),2); ?> %</td>
-
+                <td><?php echo number_format(htmlspecialchars($row['margin_level']),2); ?> %<br/>
+                    (<?php
+                        echo htmlspecialchars($row['stopout_call']."/".$row['stopout_stopout']);
+                        echo "&nbsp;".($row['stopout_type']=='percent')? "%":$row['stopout_type']; 
+                    ?>)
+                </td>
                 
                     <?php
                         $last_update = $row['timestamp'];

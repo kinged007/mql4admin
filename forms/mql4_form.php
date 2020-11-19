@@ -58,17 +58,40 @@
         <label for="account">Profit/Loss
           <input type="text" name="profit" value="<?php echo htmlspecialchars($edit ? $mql4['profit'] : '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="0" class="form-control" disabled="disabled" id = "profit" >
         </label>
+        <label for="account">Open Trades
+          <input type="text" name="open_trades" value="<?php echo htmlspecialchars($edit ? $mql4['open_trades'] : '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="0" class="form-control" disabled="disabled" id = "open_trades" >
+        </label>        
     </div> 
     <div class="form-group">
-        <label for="account">Stopout Call
-          <input type="text" name="stopout_call" value="<?php echo htmlspecialchars($edit ? $mql4['stopout_call'] : '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="Stopout" class="form-control" disabled="disabled" id = "stopout_call" >
+        <?php /*
+            $current_balance = (is_numeric($mql4['balance'])) ? $mql4['balance'] : 0;
+            $start_balance_day = (is_numeric($mql4['start_balance_day']))?htmlspecialchars($mql4['start_balance_day']):0;
+            $start_balance_week = (is_numeric($mql4['start_balance_week']))?htmlspecialchars($mql4['start_balance_week']):0;
+            $start_balance_month = (is_numeric($mql4['start_balance_month']))?htmlspecialchars($mql4['start_balance_month']):0;
+            if( $start_balance_day > 0 )
+                echo "<span class='badge badge-secondary'>Day</span> ".number_format(($current_balance-$start_balance_day)/$start_balance_day*100,2)."%<br/>"; 
+           if( $start_balance_week > 0 )
+                echo "<span class='badge badge-primary'>Week</span> ".number_format(($current_balance-$start_balance_week)/$start_balance_week*100,2)."%<br/>"; 
+           if( $start_balance_month > 0 )
+                echo "<span class='badge badge-success'>Month</span> ".number_format(($current_balance-$start_balance_month)/$start_balance_month*100,2)."%<br/>";                                        
+            */      
+ 
+        ?>      
+        <label for="account">Balance at start of Day
+          <input type="text" name="start_balance_day" value="<?php echo htmlspecialchars($edit ? $mql4['start_balance_day'] : '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="0" class="form-control" id = "start_balance_day" >
         </label>
-        <label for="account">Stopout Close
-          <input type="text" name="stopout_stopout" value="<?php echo htmlspecialchars($edit ? $mql4['stopout_stopout'] : '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="Stopout" class="form-control" disabled="disabled" id = "stopout_stopout" >
+        <label for="account">Balance at start of Week
+          <input type="text" name="start_balance_week" value="<?php echo htmlspecialchars($edit ? $mql4['start_balance_week'] : '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="0" class="form-control" id = "start_balance_week" >
         </label>
-        <label for="account">Stopout Type
-          <input type="text" name="stopout_type" value="<?php echo htmlspecialchars($edit ? $mql4['stopout_type'] : '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="Stopout" class="form-control" disabled="disabled" id = "stopout_type" >
+        <label for="account">Balance at start of Month
+          <input type="text" name="start_balance_month" value="<?php echo htmlspecialchars($edit ? $mql4['start_balance_month'] : '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="0" class="form-control" id = "start_balance_month" >
         </label>
+        <label for="account">Balance at start of 3 Months
+          <input type="text" name="start_balance_3month" value="<?php echo htmlspecialchars($edit ? $mql4['start_balance_3month'] : '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="0" class="form-control" id = "start_balance_3month" >
+        </label>
+        <label for="account">Balance at start of Year
+          <input type="text" name="start_balance_year" value="<?php echo htmlspecialchars($edit ? $mql4['start_balance_year'] : '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="0" class="form-control" id = "start_balance_year" >
+        </label>        
     </div> 
     <div class="form-group">
         <label for="account">Margin Used
@@ -81,6 +104,17 @@
           <input type="text" name="margin_level" value="<?php echo htmlspecialchars($edit ? $mql4['margin_level'] : '', ENT_QUOTES, 'UTF-8'); ?> %" placeholder="0" class="form-control" disabled="disabled" id = "margin_level" >
         </label>
     </div> 
+    <div class="form-group">
+        <label for="account">Stopout Call
+          <input type="text" name="stopout_call" value="<?php echo htmlspecialchars($edit ? $mql4['stopout_call'] : '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="Stopout" class="form-control" disabled="disabled" id = "stopout_call" >
+        </label>
+        <label for="account">Stopout Close
+          <input type="text" name="stopout_stopout" value="<?php echo htmlspecialchars($edit ? $mql4['stopout_stopout'] : '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="Stopout" class="form-control" disabled="disabled" id = "stopout_stopout" >
+        </label>
+        <label for="account">Stopout Type
+          <input type="text" name="stopout_type" value="<?php echo htmlspecialchars($edit ? $mql4['stopout_type'] : '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="Stopout" class="form-control" disabled="disabled" id = "stopout_type" >
+        </label>
+    </div>     
     <div class="form-group">
         <label for="account">Created
           <input type="text" name="created_at" value="<?php echo htmlspecialchars($edit ? $mql4['created_at'] : '', ENT_QUOTES, 'UTF-8'); ?>" placeholder="0" class="form-control" disabled="disabled" id = "created_at" >
