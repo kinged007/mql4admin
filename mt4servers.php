@@ -59,6 +59,7 @@ $select = array(
     'start_balance_month',
     'start_balance_3month',
     'start_balance_year',
+    'ignore_account',
 
 );
 
@@ -290,20 +291,25 @@ if ($order_by == 'Desc') {
                 </td>
                 
                     <?php
-                        $last_update = $row['timestamp'];
                         $style = "";
-                        if( strtotime($last_update) < time()-(60*5)){
-                            $style = " style='background-color:#FFCC99;'";
-                        }
+                        $last_update = $row['timestamp'];
+                        $ignore = $row['ignore_account'];
+                        if( $ignore != 1 ){
+                            if( strtotime($last_update) < time()-(60*5)){
+                                $style = " style='background-color:#FFCC99;'";
+                            }
 
-                        if( strtotime($last_update) < time()-(60*15)){
-                            $style = " style='background-color:#FF3333;'";
+                            if( strtotime($last_update) < time()-(60*15)){
+                                $style = " style='background-color:#FF3333;'";
+                            }
                         }
                     ?>
                 <td<?= $style; ?>>
 
                     <?php echo htmlspecialchars($last_update); ?>
+                    <?php echo ($ignore==1) ? "<br/><span class='small text-muted'>(ignored)</span>":""; ?>
                 </td>
+
                 <td>
                     <a href="edit_mt4.php?entry_id=<?php echo $row['id']; ?>&operation=edit&redirect=<?php echo $_SERVER['PHP_SELF']; ?>" class="btn btn-primary"><i class="glyphicon glyphicon-edit"></i></a>
                     <a href="#" class="btn btn-danger delete_btn" data-toggle="modal" data-target="#confirm-delete-<?php echo $row['id']; ?>"><i class="glyphicon glyphicon-trash"></i></a>
