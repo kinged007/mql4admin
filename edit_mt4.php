@@ -21,7 +21,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
     $data_to_update = filter_input_array(INPUT_POST);
 // $db->setTrace(true);
     $data_to_update['updated_at'] = date('Y-m-d H:i:s');
+
     $db = getDbInstance();
+
+    $sub_data_to_update['ignore_account'] = isset($data_to_update['ignore_account']) ? 1 : 0;
+    if(isset($data_to_update['ignore_account'])) unset($data_to_update['ignore_account']);
+    $db->where('id',$entry_id);
+    $db->update('mql4message',$sub_data_to_update);
+
     $db->where('user_id',$_SESSION['user_id']);
     $db->where('account',$data_to_update['account']);
     $db->where('server',$data_to_update['server']);
