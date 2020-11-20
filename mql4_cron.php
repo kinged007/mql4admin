@@ -7,27 +7,9 @@ require_once BASE_PATH . '/includes/auth_validate.php';
 require_once BASE_PATH . '/lib/Mql4Messages.php';
 $Mql4Messages = new Mql4Messages();
 
-// Get Input data from query string
-$search_string = filter_input(INPUT_GET, 'search_string');
-$filter_col = filter_input(INPUT_GET, 'filter_col');
-$order_by = filter_input(INPUT_GET, 'order_by');
-
-// Per page limit for pagination.
-$pagelimit = 15;
-
-// Get current page.
-$page = filter_input(INPUT_GET, 'page');
-if (!$page) {
-	$page = 1;
-}
-
 // If filter types are not selected we show latest added data first
-if (!$filter_col) {
-	$filter_col = 'timestamp';
-}
-if (!$order_by) {
-	$order_by = 'Desc';
-}
+$filter_col = 'timestamp';
+$order_by = 'Desc';
 
 //Get DB instance. i.e instance of MYSQLiDB Library
 $db = getDbInstance();
@@ -51,34 +33,40 @@ $select = array('id',
     'friendly_name', 
     'account_type',
     'ignore_account',
+    'last_notification',
 );
 
 //Start building query according to input parameters.
-// If search string
-if ($search_string) {
-	$db->where('account', '%' . $search_string . '%', 'like');
-    $db->orwhere('server', '%' . $search_string . '%', 'like');
-    $db->orwhere('vps_id', '%' . $search_string . '%', 'like');
-}
-if( isset($_GET['demo']) ){
-    $db->where('account_type', 'demo', '!=');
-}
-
-// select by user
-$db->where('user_id',$_SESSION['user_id']);
 
 //If order by option selected
-if ($order_by) {
-	$db->orderBy($filter_col, $order_by);
-}
+$db->orderBy($filter_col, $order_by);
 
+$db->where('timestamp',date("Y-m-d H:i:s",time()-60*15),'<');
+$db->where("ignore_account",0);
+$db->orwhere("ignore_account IS NULL");
 
 // Set pagination limit
-$db->pageLimit = $pagelimit;
+$db->pageLimit = 100;
 
 // Get result of the query.
-$rows = $db->arraybuilder()->paginate('mql4message', $page, $select);
-$total_pages = $db->totalPages;
+$rows = $db->arraybuilder()->paginate('mql4message', 1, $select);
+$data = $notify = array();
+
+if( !empty($rows) ){
+    foreach ($rows as $row) {
+        $data[$row['user_id']][] = $row;
+        if( strtotime($row['last_notification']) < time()-(60*15) ){
+            $notify[$row['user_id']] = 1;
+        }
+    }
+    foreach ($data as $uid => $row) {
+        
+    }
+}
+
+print_r($data);
+print_r($notify);
+die();
 
 include BASE_PATH . '/includes/header.php';
 ?>
@@ -189,16 +177,9 @@ if ($order_by == 'Desc') {
         </thead>
         <tbody>
             <?php foreach ($rows as $row): ?>
-            <?php 
-                if($row['account_type'] == 'demo' )  $demo = true; else $demo = false; 
-                $ignore = $row['ignore_account'];
-            ?>
-            <tr style="<?php 
-                    echo ($demo) ? "background-color:#00FFFF;font-style:italic;": "";
-                    echo ($ignore==1) ? "color:#dcd;": "";
-                ?>">    
+            <?php if($row['account_type'] == 'demo' )  $demo = true; else $demo = false; ?>
+            <tr<?= ($demo) ? " style='background-color:#00FFFF;font-style:italic;'" : ""; ?>>    
                 <?php
-                    
                     $dd_color = "none";
                     $badge = "secondary";
                     if( $row['equity'] <= $row['balance']*0.8 ){
@@ -246,6 +227,7 @@ if ($order_by == 'Desc') {
                     <?php
                         $style = "";
                         $last_update = $row['timestamp'];
+                        $ignore = $row['ignore_account'];
                         if( $ignore != 1 ){
                             if( strtotime($last_update) < time()-(60*5)){
                                 $style = " style='background-color:#FFCC99;'";
@@ -297,23 +279,9 @@ if ($order_by == 'Desc') {
 
     <!-- Pagination -->
     <div class="text-center">
-    <?php echo paginationLinks($page, $total_pages, 'mql4messages.php'); ?>
+    <?php echo paginationLinks($page, $total_pages, 'mql4update.php'); ?>
     </div>
     <!-- //Pagination -->
-    <div>
-        Status page: <?php
-            $db->where('id',$_SESSION['user_id']);
-            $secret = $db->getOne('admin_accounts','secret');
-            
-            // echo "<pre>";print_r($_SERVER);echo "</pre>";
-            if( isset($secret['secret'])) {
-                $url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]/mt4status.php?s=".$secret['secret'];
-                echo "<a href='{$url}'>{$url}</a>";
-            }
-        ?>
-    </div>
-
 </div>
-
 <!-- //Main container -->
 <?php include BASE_PATH . '/includes/footer.php';?>
