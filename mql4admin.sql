@@ -55,6 +55,7 @@ CREATE TABLE `mql4message` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NULL DEFAULT NULL,
   `ignore_account` tinyint(1) DEFAULT NULL,
+  `last_notification` timestamp NULL DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 

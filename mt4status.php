@@ -2,6 +2,7 @@
 
 if( !isset($_GET['s']) ) header('Location: /index.php');
 
+session_start();
 $get = filter_input_array(INPUT_GET);
 $secret = $get['s'];
 //session_start();
@@ -35,7 +36,7 @@ $select = array('id',
     'friendly_name', 
     'account_type',
     'ignore_account',
-    'last_notification',
+    // 'last_notification',
 );
 
 //Start building query according to input parameters.
@@ -116,7 +117,7 @@ include BASE_PATH . '/includes/header.php';
     <br/>
 
 
-    <?php if(empty($data)) : ?>
+    <?php if(!empty($data)) : ?>
 
         <h2>Inactive Terminals</h2>
         <!-- Table -->
