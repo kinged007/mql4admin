@@ -295,11 +295,6 @@ if ($order_by == 'Desc') {
     </table>
     <!-- //Table -->
 
-    <!-- Pagination -->
-    <div class="text-center">
-    <?php echo paginationLinks($page, $total_pages, 'mql4messages.php'); ?>
-    </div>
-    <!-- //Pagination -->
     <div>
         Status page: <?php
             $db->where('id',$_SESSION['user_id']);
@@ -312,6 +307,13 @@ if ($order_by == 'Desc') {
             }
         ?>
     </div>
+    
+    <!-- Pagination -->
+    <div class="text-center">
+    <?php echo paginationLinks($page, $total_pages, 'mql4messages.php'); ?>
+    </div>
+    <!-- //Pagination -->
+
 
 </div>
 
