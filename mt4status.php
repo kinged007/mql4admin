@@ -116,7 +116,7 @@ include BASE_PATH . '/includes/header.php';
     <br/>
 
 
-    <?php if(!empty($data)) : ?>
+    <?php if(empty($data)) : ?>
 
         <h2>Inactive Terminals</h2>
         <!-- Table -->
@@ -198,13 +198,33 @@ include BASE_PATH . '/includes/header.php';
             </tbody>
         </table>
         <!-- //Table -->
-
-        <!-- Pagination -->
-        <div class="text-center">
-
-        </div>
-        <!-- //Pagination -->
+        
     <?php endif; ?>
+
+    <form class="form form-inline" action="" method="GET">
+
+        <div class="clearfix">
+            <?php 
+                $autoupdate = isset($_GET['autoupdate']) && $_GET['autoupdate'] == 1 ? true : false;
+            ?>
+            <input type="hidden" name="autoupdate" value="<?php echo ($autoupdate)?"0":"1"; ?>" />
+            <input type="hidden" name="s" value="<?php echo $_GET['s']; ?>" />
+            <div class="pull-left float-left">
+                <button type="submit" class="btn btn-<?php echo ($autoupdate) ? "danger" : "success";  ?>" >
+                    Auto-update 
+                        <span class="glyphicon glyphicon-<?php echo $autoupdate ? "remove" : "refresh"; ?>"></span>
+                </button>
+                <input type='number' value="<?= isset($_GET['interval'])?$_GET['interval']:60;?>" name="interval" class="form-control" style="width:5em;" max="300" min="1" /> <span class="small">seconds</span>
+                 
+            </div>
+            <?php
+                if( $autoupdate ){
+                    echo "<script>setTimeout(function(){location.reload();}, ".(isset($_GET['interval'])?$_GET['interval']*1000:60000).");</script>";
+                }
+            ?>            
+        </div>
+    </form>
+
 </div>
 <!-- //Main container -->
 <?php include BASE_PATH . '/includes/footer.php';?>
