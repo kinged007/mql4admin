@@ -48,6 +48,7 @@ $select = array('id',
     'free_margin',
     'balance', 
     'timestamp', 
+    'updated_at', 
     'friendly_name', 
     'account_type',
     'ignore_account',
@@ -156,7 +157,11 @@ if ($order_by == 'Desc') {
                  
             </div>
             <div class="pull-right float-right text-right">
-                Server Time: <span class="badge badge-info" style="padding: 8px;"><?= date('Y-m-d H:i:s'); ?></span>
+                <strong>Server Time:</strong> <span class="badge badge-success"><?= date('Y-m-d H:i:s'); ?></span><br/>
+                New York: <span class="badge badge-primary"><?= date('Y-m-d H:i:s',strtotime('UTC -5 hours')); ?></span><br/>
+                London: <span class="badge badge-warning"><?= date('Y-m-d H:i:s',strtotime('UTC')); ?></span><br/>
+                Hong Kong: <span class="badge badge-info"><?= date('Y-m-d H:i:s',strtotime('UTC +8 hours')); ?></span><br/>
+
             </div>
             <?php
                 if( $autoupdate ){
@@ -184,6 +189,7 @@ if ($order_by == 'Desc') {
                 <th>Open Trades</th>
                 <th>Margin (Stopout)</th>
                 <th>Last Ping</th>
+                <th>Terminal Server Time</th>
                 <th>Actions</th>
             </tr>
         </thead>
@@ -228,7 +234,7 @@ if ($order_by == 'Desc') {
                     <span class="badge badge-dark">Equity</span> <?php echo number_format($current_equity,2); ?> 
 
                     <?php
-                        $dd = ($current_balance-$current_equity)/$current_balance*100;
+                        $dd = $current_balance > 0 ? ($current_balance-$current_equity)/$current_balance*100 : 0;
                     ?>                        
                     <span class="badge badge-<?= $badge; ?>">
                         <?php echo number_format(($dd<100)?-$dd:$dd,1);  ?>%
@@ -245,7 +251,7 @@ if ($order_by == 'Desc') {
                 
                     <?php
                         $style = "";
-                        $last_update = $row['timestamp'];
+                        $last_update = $row['updated_at'];
                         if( $ignore != 1 ){
                             if( strtotime($last_update) < time()-(60*5)){
                                 $style = " style='background-color:#FFCC99;'";
@@ -261,6 +267,15 @@ if ($order_by == 'Desc') {
                     <?php echo htmlspecialchars($last_update); ?>
                     <?php echo ($ignore==1) ? "<br/><span class='small text-muted'>(ignored)</span>":""; ?>
                 </td>
+                <td<?= $style; ?>>
+
+                    <?php echo htmlspecialchars($row['timestamp']); ?>
+                    <?php echo ($ignore==1) ? "<br/><span class='small text-muted'>(ignored)</span>":""; ?>
+                    <?php
+                        echo "<br>(".round((strtotime($row['timestamp']) - strtotime($last_update) )/60/60)."hrs)";
+
+                    ?>
+                </td>                
                 <td>
                     <a href="edit_mt4.php?entry_id=<?php echo $row['id']; ?>&operation=edit&redirect=<?php echo $_SERVER['PHP_SELF']; ?>" class="btn btn-primary"><i class="glyphicon glyphicon-edit"></i></a>
                     <a href="#" class="btn btn-danger delete_btn" data-toggle="modal" data-target="#confirm-delete-<?php echo $row['id']; ?>"><i class="glyphicon glyphicon-trash"></i></a>
