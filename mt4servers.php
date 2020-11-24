@@ -257,7 +257,7 @@ if ($order_by == 'Desc') {
                     <span class="badge badge-dark">Equity</span> <?php echo number_format($current_equity,2); ?> 
 
                     <?php
-                        $dd = ($current_balance-$current_equity)/$current_balance*100;
+                        $dd = $current_balance > 0 ? ($current_balance-$current_equity)/$current_balance*100 : 0;
                     ?>                        
                     <span class="badge badge-<?= $badge; ?>">
                         <?php echo number_format(($dd<100)?-$dd:$dd,1);  ?>%

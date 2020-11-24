@@ -57,12 +57,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($user_id) )
     $db->where('user_id', $user_id);
     //print_r($data_to_update['user_name']);die();
     $row = $db->getOne('mql4message');
-    //print_r($data_to_update['account']);
+    print_r($data_to_update);
     //print_r($row); die();
 
 //var_dump($data_to_update);
 
-    $data_to_update['timestamp'] = date('Y-m-d H:i:s');
+    $data_to_update['updated_at'] = date('Y-m-d H:i:s');
+    $data_to_update['timestamp'] = date('Y-m-d H:i:s',$data_to_update['timestamp']);
 
     // balance for day/week/month
     if( time() > strtotime( 'monday this week' ) && strtotime($row['updated_at']) < strtotime( 'monday this week' ) ){

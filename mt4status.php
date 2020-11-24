@@ -46,8 +46,8 @@ $db->orderBy($filter_col, $order_by);
 
 $db->where('user_id',$user['id']);
 //$db->where('timestamp',date("Y-m-d H:i:s",time()-60*15),'<');
-//$db->where("ignore_account",0);
-//$db->orwhere("ignore_account IS NULL");
+$db->where("ignore_account",0);
+$db->orwhere("ignore_account IS NULL");
 
 // Set pagination limit
 $db->pageLimit = 100;
@@ -76,7 +76,7 @@ if( !empty($rows) ){
 
 }
 
-$active_count = count($rows);
+$active_count = count($rows) - $ignore_count;
 //print_r($data);
 
 // print_r($notify);
@@ -157,7 +157,7 @@ include BASE_PATH . '/includes/header.php';
                     <td style="background-color: <?=$dd_color;?>">
 
                         <?php
-                            $dd = ($current_balance-$current_equity)/$current_balance*100;
+                            $dd = $current_balance > 0 ? ($current_balance-$current_equity)/$current_balance*100 : 0;
                         ?>                        
                         <span>Equity
                             <span class="badge badge-<?= $badge; ?>">
