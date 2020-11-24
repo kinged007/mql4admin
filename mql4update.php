@@ -57,28 +57,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($user_id) )
     $db->where('user_id', $user_id);
     //print_r($data_to_update['user_name']);die();
     $row = $db->getOne('mql4message');
-    print_r($data_to_update);
+    //print_r($data_to_update);
     //print_r($row); die();
 
 //var_dump($data_to_update);
 
+    $ts = strtotime($data_to_update['timestamp']);
     $data_to_update['updated_at'] = date('Y-m-d H:i:s');
-    $data_to_update['timestamp'] = date('Y-m-d H:i:s',$data_to_update['timestamp']);
+    //$data_to_update['timestamp'] = date('Y-m-d H:i:s',$data_to_update['timestamp']);
 
     // balance for day/week/month
-    if( time() > strtotime( 'monday this week' ) && strtotime($row['updated_at']) < strtotime( 'monday this week' ) ){
+    if( $ts > strtotime( 'monday this week', $ts ) && strtotime($row['timestamp']) < strtotime( 'monday this week', $ts ) ){
         $data_to_update['start_balance_week'] = $data_to_update['balance'];
     }
-    if( time() > strtotime( 'today' ) && strtotime($row['updated_at']) < strtotime( 'today' ) ){
+    if( $ts > strtotime( 'today', $ts ) && strtotime($row['timestamp']) < strtotime( 'today', $ts ) ){
         $data_to_update['start_balance_day'] = $data_to_update['balance'];
     }
-    if( time() > strtotime(date('Y-m-1')) && strtotime($row['updated_at']) < strtotime(date('Y-m-1')) ){
+    if( $ts > strtotime(date('Y-m-1'), $ts) && strtotime($row['timestamp']) < strtotime(date('Y-m-1', $ts)) ){
         $data_to_update['start_balance_month'] = $data_to_update['balance'];
     }
-    if( time() > strtotime(date('Y-m-1')." -3 months") && strtotime($row['updated_at']) < strtotime(date('Y-m-1')." -3 months") ){
+    if( $ts > strtotime(date('Y-m-1', $ts)." -3 months") && strtotime($row['timestamp']) < strtotime(date('Y-m-1', $ts)." -3 months") ){
         $data_to_update['start_balance_3month'] = $data_to_update['balance'];
     }
-    if( time() > strtotime(date('Y-1-1')) && strtotime($row['updated_at']) < strtotime(date('Y-1-1')) ){
+    if( $ts > strtotime(date('Y-1-1', $ts)) && strtotime($row['timestamp']) < strtotime(date('Y-1-1', $ts)) ){
         $data_to_update['start_balance_year'] = $data_to_update['balance'];
     }
 
