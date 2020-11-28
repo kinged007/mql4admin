@@ -23,7 +23,7 @@ if (!$page) {
 
 // If filter types are not selected we show latest added data first
 if (!$filter_col) {
-	$filter_col = 'timestamp';
+	$filter_col = 'account_type';
 }
 if (!$order_by) {
 	$order_by = 'Desc';
@@ -40,6 +40,7 @@ $select = array('id',
     'equity',
     'profit',
     'currency',
+    'leverage',
     'open_trades',
     'margin_level',
     'stopout_call',
@@ -52,6 +53,7 @@ $select = array('id',
     'friendly_name', 
     'account_type',
     'ignore_account',
+    'trade_permitted',
 );
 
 //Start building query according to input parameters.
@@ -63,6 +65,9 @@ if ($search_string) {
 }
 if( isset($_GET['demo']) ){
     $db->where('account_type', 'demo', '!=');
+}
+if( isset($_GET['ignored']) ){
+    //$db->where('ignore_account', '1', '!='); // DOES NOT WORK PROPERLY
 }
 
 // select by user
@@ -80,6 +85,27 @@ $db->pageLimit = $pagelimit;
 // Get result of the query.
 $rows = $db->arraybuilder()->paginate('mql4message', $page, $select);
 $total_pages = $db->totalPages;
+
+$data_rows = $demo_rows = array();
+$ignore_count = $demo_count = $terminal_count = $vps_count = $offline_count = 0;
+
+// organise by VPS
+if( !empty($rows) ){
+    foreach ($rows as $row) {
+        if( isset($_GET['ignored']) && $row['ignore_account'] == 1) continue;
+        if($row['account_type'] == 'demo' ) $demo_count++;
+        if($row['ignore_account'] == '1' ) $ignore_count++;
+        if($row['ignore_account'] != '1' && date("N") < 6 && strtotime($row['updated_at']) < time()-(60*15)) $offline_count++;
+
+        if(!isset($data_rows[$row['vps_id']])) $vps_count++;
+
+        $data_rows[$row['vps_id']][] = $row;
+
+        $terminal_count++;
+    }
+    unset($rows);
+}
+
 
 include BASE_PATH . '/includes/header.php';
 ?>
@@ -124,6 +150,7 @@ if ($order_by == 'Desc') {
 ?>>Desc</option>
             </select>
             <label>Only REAL accounts: <input type="checkbox" name="demo" <?php if(isset($_GET['demo'])) echo "checked='checked'"; ?>/></label>
+            <label>Ignore Ignored: <input type="checkbox" name="ignored" <?php if(isset($_GET['ignored'])) echo "checked='checked'"; ?>/></label>
             <input type="submit" value="Go" class="btn btn-primary">            
         </form>
           
@@ -141,6 +168,7 @@ if ($order_by == 'Desc') {
                 if( isset($_GET['filter_col']    ) ) $query["filter_col"] = $_GET['filter_col'];
                 if( isset($_GET['order_by']      ) ) $query["order_by"] = $_GET['order_by'];
                 if( isset($_GET['demo']          ) ) $query["demo"] = $_GET['demo'];
+                if( isset($_GET['ignored']          ) ) $query["ignored"] = $_GET['ignored'];
                 if( !empty($query) ){
                     foreach ($query as $key => $value) {
                         echo "<input type='hidden' name='{$key}' value='{$value}'/>";
@@ -174,141 +202,156 @@ if ($order_by == 'Desc') {
     <br/>
 
     <!-- //Filters -->
-
-    <!-- Table -->
-    <table class="table table-striped table-bordered table-condensed">
-        <thead>
-            <tr>
-                <th>Friendly Name</th>
-                <th>Account</th>
-                <th>Name</th>
-                <th>Server</th>
-                <th>VPS</th>
-                <th>Balance</th>
-                <th>Currency</th>
-                <th>Open Trades</th>
-                <th>Margin (Stopout)</th>
-                <th>Last Ping</th>
-                <th>Terminal Server Time</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            <?php foreach ($rows as $row): ?>
-            <?php 
-                if($row['account_type'] == 'demo' )  $demo = true; else $demo = false; 
-                $ignore = $row['ignore_account'];
-            ?>
-            <tr style="<?php 
-                    echo ($demo) ? "background-color:#00FFFF;font-style:italic;": "";
-                    echo ($ignore==1) ? "color:#dcd;": "";
-                ?>">    
-                <?php
-                    
-                    $dd_color = "none";
-                    $badge = "secondary";
-                    if( $row['equity'] <= $row['balance']*0.8 ){
-                        $dd_color = "#FFFF99";
-                        $badge = "info";
-                    }
-                    if( $row['equity'] <= $row['balance']*0.7 ){
-                        $dd_color = "#FF9999";
-                        $badge = "warning";
-                    }
-                    if( $row['equity'] <= $row['balance']*0.6 ){
-                        $dd_color = "#FF3333";
-                        $badge = "danger";
-                    }
-                    $current_balance = (is_numeric($row['balance']))?htmlspecialchars($row['balance']):0;
-                    $current_equity = (is_numeric($row['equity']))?htmlspecialchars($row['equity']):0;
-                    $current_profit = (is_numeric($row['profit']))?htmlspecialchars($row['profit']):0;
-                ?>
-                <td><?php echo $row['friendly_name']; ?></td>
-                <td><?php echo htmlspecialchars($row['account']); ?></td>
-                <td><?php echo htmlspecialchars($row['name']); ?></td>
-                <td><?php echo htmlspecialchars($row['server']); ?></td>
-                <td><?php echo htmlspecialchars($row['vps_id']); ?></td>
-                <td style="background-color: <?=$dd_color;?>">
-                    <span class="badge badge-primary">Balance</span> <?php echo number_format($current_balance,2); ?><br/>
-                    <span class="badge badge-info">Profit</span> <?php echo number_format($current_profit,2); ?><br/>
-                    <span class="badge badge-dark">Equity</span> <?php echo number_format($current_equity,2); ?> 
-
-                    <?php
-                        $dd = $current_balance > 0 ? ($current_balance-$current_equity)/$current_balance*100 : 0;
-                    ?>                        
-                    <span class="badge badge-<?= $badge; ?>">
-                        <?php echo number_format(($dd<100)?-$dd:$dd,1);  ?>%
-                    </span><br/>
-                </td>
-                <td><?php echo htmlspecialchars($row['currency']); ?></td>
-                <td><?php echo htmlspecialchars($row['open_trades']); ?></td>
-                <td><?php echo number_format(htmlspecialchars($row['margin_level']),2); ?> %<br/>
-                    (<?php
-                        echo htmlspecialchars($row['stopout_call']."/".$row['stopout_stopout']);
-                        echo "&nbsp;".($row['stopout_type']=='percent')? "%":$row['stopout_type']; 
-                    ?>)
-                </td>
-                
-                    <?php
-                        $style = "";
-                        $last_update = $row['updated_at'];
-                        if( $ignore != 1 ){
-                            if( strtotime($last_update) < time()-(60*5)){
-                                $style = " style='background-color:#FFCC99;'";
-                            }
-
-                            if( strtotime($last_update) < time()-(60*15)){
-                                $style = " style='background-color:#FF3333;'";
-                            }
-                        }
+    <?php if(!empty($data_rows)) : ?>
+        Showing <span class="badge badge-success"><?php echo $terminal_count; ?></span> terminals over <span class="badge badge-warning"><?php echo $vps_count; ?></span> VPS machines. <span class="badge badge-danger"><?php echo $offline_count; ?></span> terminals are offline.<br/>
+        <?php
+            if( $demo_count > 0 || $ignore_count > 0 ) echo "Includes ";
+            if( $demo_count > 0 ) echo '<span class="badge badge-info">'.$demo_count . "</span> demos" . ($ignore_count>0?", and ":".");
+            if( $ignore_count > 0 ) echo '<span class="badge badge-light">'.$ignore_count . "</span> ignored terminals.";
+        ?>
+        <?php foreach ($data_rows as $vps => $rows): ?>
+            <hr/>
+            <h3>VPS: <?php echo $vps; ?></h3>
+            <!-- Table -->
+            <table class="table table-striped table-bordered table-condensed">
+                <thead>
+                    <tr>
+                        <th>Account</th>
+                        <th>Balance</th>
+                        <th>Info</th>
+                        <th>Last Contact</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php foreach ($rows as $row): ?>
+                    <?php 
+                        if($row['account_type'] == 'demo' )  $demo = true; else $demo = false; 
+                        $ignore = $row['ignore_account'];
                     ?>
-                <td<?= $style; ?>>
+                    <tr style="<?php 
+                            echo ($demo) ? "background-color:#00FFFF;font-style:italic;": "";
+                            echo ($ignore==1) ? "color:#dcd;": "";
+                        ?>">    
+                        <?php
+                            
+                            $dd_color = "none";
+                            $badge = "secondary";
+                            if( $row['equity'] < $row['balance']*0.8 ){
+                                // $dd_color = "#FFCC00";
+                                $badge = "warning";
+                            }
+                            if( $row['equity'] < $row['balance']*0.7 ){
+                                $dd_color = "#FFCCCC";
+                                $badge = "warning";
+                            }
+                            if( $row['equity'] < $row['balance']*0.6 ){
+                                $dd_color = "#FF9999";
+                                $badge = "danger";
+                            }
+                            $current_balance = (is_numeric($row['balance']))?htmlspecialchars($row['balance']):0;
+                            $current_equity = (is_numeric($row['equity']))?htmlspecialchars($row['equity']):0;
+                            $current_profit = (is_numeric($row['profit']))?htmlspecialchars($row['profit']):0;
+                        ?>
+                        <td>
+                            <strong><?php echo $row['friendly_name']; ?></strong><br/>
+                            (<?php echo htmlspecialchars($row['account']); ?>, <?php echo htmlspecialchars($row['server']); ?>) <br/>
+                            <?php echo htmlspecialchars($row['name']); ?>
+                        </td>
+                        <td style="background-color: <?=$dd_color;?>">
+                            <span class="badge badge-primary">Balance</span> <?php echo number_format($current_balance,2); ?><br/>
+                            <span class="badge badge-info">Profit</span> <?php echo number_format($current_profit,2); ?><br/>
+                            <span class="badge badge-dark">Equity</span> <?php echo number_format($current_equity,2); ?> 
 
-                    <?php echo htmlspecialchars($last_update); ?>
-                    <?php echo ($ignore==1) ? "<br/><span class='small text-muted'>(ignored)</span>":""; ?>
-                </td>
-                <td<?= $style; ?>>
+                            <?php
+                                $dd = $current_balance > 0 ? ($current_balance-$current_equity)/$current_balance*100 : 0;
+                            ?>                        
+                            <span class="badge badge-<?= $badge; ?>">
+                                <?php echo number_format(($dd<100)?-$dd:$dd,1);  ?>%
+                            </span><br/>
+                            <span class="badge badge-<?= $badge; ?>">
+                                Margin 
+                            </span> <?php echo number_format(htmlspecialchars($row['margin_level']),2); ?> %<br/>
+                            (Margin call <?php
+                                echo htmlspecialchars($row['stopout_call']."/".$row['stopout_stopout']);
+                                echo "&nbsp;".($row['stopout_type']=='percent')? "%":$row['stopout_type']; 
+                            ?> stopout)
+                        </td>
+                        <td>
+                            <?php echo $row['currency']; ?><br/>
+                            1:<?php echo $row['leverage']; ?><br/>
+                            <span class="badge badge-<?php echo $row['trade_permitted']==1 ? "success":"danger";?>">Trade <?php echo $row['trade_permitted']==1?"":"NOT"; ?> Permitted</span><br/>
+                            <span class="badge badge-<?php echo $row['account_type']=="real" ? "primary":($row['account_type']=="demo"?"secondary":"warning");?>"><?php echo ucfirst($row['account_type']); ?> Account</span><br/>
+                            <span class="badge badge-dark"><?php echo htmlspecialchars($row['open_trades']); ?></span> open trades<br/>
 
-                    <?php echo htmlspecialchars($row['timestamp']); ?>
-                    <?php echo ($ignore==1) ? "<br/><span class='small text-muted'>(ignored)</span>":""; ?>
-                    <?php
-                        echo "<br>(".round((strtotime($row['timestamp']) - strtotime($last_update) )/60/60)."hrs)";
+                        </td>                        
+                            <?php
+                                $style = "";
+                                $last_update = $row['updated_at'];
+                                if( $ignore != 1 ){
+                                    if( date("N") < 6 ){
+                                        if( strtotime($last_update) < time()-(60*5)){
+                                            $style = " style='background-color:#FFCC99;'";
+                                        }
 
-                    ?>
-                </td>                
-                <td>
-                    <a href="edit_mt4.php?entry_id=<?php echo $row['id']; ?>&operation=edit&redirect=<?php echo $_SERVER['PHP_SELF']; ?>" class="btn btn-primary"><i class="glyphicon glyphicon-edit"></i></a>
-                    <a href="#" class="btn btn-danger delete_btn" data-toggle="modal" data-target="#confirm-delete-<?php echo $row['id']; ?>"><i class="glyphicon glyphicon-trash"></i></a>
-                </td>
-            </tr>
-            <!-- Delete Confirmation Modal -->
-            <div class="modal fade" id="confirm-delete-<?php echo $row['id']; ?>" role="dialog">
-                <div class="modal-dialog">
-                    <form action="delete_mt4.php" method="POST">
-                        <!-- Modal content -->
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <button type="button" class="close" data-dismiss="modal">&times;</button>
-                                <h4 class="modal-title">Confirm</h4>
-                            </div>
-                            <div class="modal-body">
-                                <input type="hidden" name="del_id" id="del_id" value="<?php echo $row['id']; ?>">
-                                <input type="hidden" name="redirect" id="redirect" value="<?php echo $_SERVER['PHP_SELF']; ?>">
-                                <p>Are you sure you want to delete this row?</p>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="submit" class="btn btn-default pull-left">Yes</button>
-                                <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
-                            </div>
+                                        if( strtotime($last_update) < time()-(60*15)){
+                                            $style = " style='background-color:#FF9999;'";
+                                        }
+                                    }
+                                }
+                            ?>
+                        <td<?= $style; ?>>
+                            <?php 
+                                if(!empty($style)) 
+                                    echo "<span class='badge badge-danger'>Offline for ".date("H:i:s",time()-strtotime($row['updated_at']))."</span><br/>"; 
+                            ?>
+                            Server: <?php echo htmlspecialchars($row['updated_at']); ?><br/>
+                            MT4 Server: <?php echo htmlspecialchars($last_update); ?>
+                            <?php
+                                $t = "";
+                                if( $row['timestamp'] > $last_update ) $t = "+"; // mt4 is after server : +
+                                else $t = "-"; // mt4 is before server: -
+                                echo "<br>({$t}".round((strtotime($row['timestamp']) - strtotime($last_update) )/60/60)."hrs)";
+                            ?>
+                            <?php echo ($ignore==1) ? "<br/><span class='small text-muted'>(ignored)</span>":""; ?>
+
+                        </td>                
+                        <td>
+                            <a href="edit_mt4.php?entry_id=<?php echo $row['id']; ?>&operation=edit&redirect=<?php echo $_SERVER['PHP_SELF']; ?>" class="btn btn-primary"><i class="glyphicon glyphicon-edit"></i></a>
+                            <a href="#" class="btn btn-danger delete_btn" data-toggle="modal" data-target="#confirm-delete-<?php echo $row['id']; ?>"><i class="glyphicon glyphicon-trash"></i></a>
+                        </td>
+                    </tr>
+                    <!-- Delete Confirmation Modal -->
+                    <div class="modal fade" id="confirm-delete-<?php echo $row['id']; ?>" role="dialog">
+                        <div class="modal-dialog">
+                            <form action="delete_mt4.php" method="POST">
+                                <!-- Modal content -->
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                        <h4 class="modal-title">Confirm</h4>
+                                    </div>
+                                    <div class="modal-body">
+                                        <input type="hidden" name="del_id" id="del_id" value="<?php echo $row['id']; ?>">
+                                        <input type="hidden" name="redirect" id="redirect" value="<?php echo $_SERVER['PHP_SELF']; ?>">
+                                        <p>Are you sure you want to delete this row?</p>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="submit" class="btn btn-default pull-left">Yes</button>
+                                        <button type="button" class="btn btn-default" data-dismiss="modal">No</button>
+                                    </div>
+                                </div>
+                            </form>
                         </div>
-                    </form>
-                </div>
-            </div>
-            <!-- //Delete Confirmation Modal -->
-            <?php endforeach;?>
-        </tbody>
-    </table>
-    <!-- //Table -->
+                    </div>
+                    <!-- //Delete Confirmation Modal -->
+                    <?php endforeach;?>
+                </tbody>
+            </table>
+            <!-- //Table -->
+            <br/>
+        <?php endforeach; ?>
+    <?php endif; ?>
 
     <div>
         Status page: <?php
