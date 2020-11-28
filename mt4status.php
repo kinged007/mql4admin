@@ -14,7 +14,7 @@ require_once BASE_PATH . '/lib/Mql4Messages.php';
 $Mql4Messages = new Mql4Messages();
 
 // If filter types are not selected we show latest added data first
-$filter_col = 'timestamp';
+$filter_col = 'vps_id';
 $order_by = 'Desc';
 
 //Get DB instance. i.e instance of MYSQLiDB Library
@@ -23,19 +23,31 @@ $db = getDbInstance();
 $db->where('secret',$get['s']);
 $user = $db->getOne('admin_accounts','id');
 
+// print_r($user);
+
 if( empty($user)) header("Location: /index.php");
 
 $select = array('id',
     'account', 
+    'server', 
     'vps_id',
     'equity',
+    'currency',
+    'leverage',
     'open_trades',
     'margin_level',
     'balance', 
     'timestamp', 
     'friendly_name', 
     'account_type',
+    'trade_permitted',
     'ignore_account',
+    'updated_at',
+    'start_balance_day',
+    'start_balance_week',
+    'start_balance_month',
+    'start_balance_3month',
+    'start_balance_year',
     // 'last_notification',
 );
 
@@ -46,8 +58,8 @@ $db->orderBy($filter_col, $order_by);
 
 $db->where('user_id',$user['id']);
 //$db->where('timestamp',date("Y-m-d H:i:s",time()-60*15),'<');
-$db->where("ignore_account",0);
-$db->orwhere("ignore_account IS NULL");
+// $db->where("ignore_account",1,"!=");
+// $db->where("ignore_account IS NULL");
 
 // Set pagination limit
 $db->pageLimit = 100;
@@ -55,7 +67,7 @@ $db->pageLimit = 100;
 // Get result of the query.
 $rows = $db->arraybuilder()->paginate('mql4message', 1, $select);
 
-$data = $notify = array();
+$inactive_accounts = $notify = $trading_accounts = $demo_accounts = array();
 
 //print_r($rows);
 
@@ -67,17 +79,22 @@ if( !empty($rows) ){
             $ignore_count++;
             continue;
         }
-        if( strtotime($row['timestamp']) < time()-(60*5)){
+
+        if( $row['account_type']=="demo" ) $demo_accounts[$row['account'].$row['server']] = $row;
+        else $trading_accounts[$row['account'].$row['server']] = $row;
+
+        if( date("N") < 6 && strtotime($row['updated_at']) < time()-(60*15)){
             $inactive_count++;
-            $data[] = $row;
+            $inactive_accounts[] = $row;
             continue;
         }    
     }
+    $trading_accounts = array_merge($trading_accounts, $demo_accounts);
 
 }
 
 $active_count = count($rows) - $ignore_count;
-//print_r($data);
+//print_r($trading_accounts);
 
 // print_r($notify);
 
@@ -101,15 +118,31 @@ include BASE_PATH . '/includes/header.php';
     <hr>
 
     <div class="clearfix">
-        <div class="pull-left float-left">
-            Total Terminals: <span class="badge badge-info" style="padding: 8px;"><?= $active_count; ?></span><br/>
-            Terminals Offline: <span class="badge badge-danger" style="padding: 8px;"><?= $inactive_count; ?></span><br/>
-            <!-- Ignored Terminals:<span class="badge badge-secondary" style="padding: 8px;"><?= $ignore_count; ?></span> -->
-<?php
-    //echo "ACTIVE = Ignore | Inactive : ".$active_count . " = " . $ignore_count . " | " . $inactive_count . "  ";
-?>
-             
-        </div>
+
+        <form class="form form-inline" action="" method="GET">
+
+            <!-- <div class="clearfix"> -->
+                <?php 
+                    $autoupdate = isset($_GET['autoupdate']) && $_GET['autoupdate'] == 1 ? true : false;
+                ?>
+                <input type="hidden" name="autoupdate" value="<?php echo ($autoupdate)?"0":"1"; ?>" />
+                <input type="hidden" name="s" value="<?php echo $_GET['s']; ?>" />
+                <div class="pull-left float-left">
+                    <button type="submit" class="btn btn-<?php echo ($autoupdate) ? "danger" : "success";  ?>" >
+                        Auto-update 
+                            <span class="glyphicon glyphicon-<?php echo $autoupdate ? "remove" : "refresh"; ?>"></span>
+                    </button>
+                    <input type='number' value="<?= isset($_GET['interval'])?$_GET['interval']:60;?>" name="interval" class="form-control" style="width:5em;" max="300" min="1" /> <span class="small">seconds</span>
+                     
+                </div>
+                <?php
+                    if( $autoupdate ){
+                        echo "<script>setTimeout(function(){location.reload();}, ".(isset($_GET['interval'])?$_GET['interval']*1000:60000).");</script>";
+                    }
+                ?>            
+            <!-- </div> -->
+        </form>        
+
         <div class="pull-right float-right text-right">
             <strong>Server Time:</strong> <span class="badge badge-success"><?= date('Y-m-d H:i:s'); ?></span><br/>
             New York: <span class="badge badge-primary"><?= date('Y-m-d H:i:s',strtotime('UTC -5 hours')); ?></span><br/>
@@ -118,10 +151,19 @@ include BASE_PATH . '/includes/header.php';
     </div>    
     <br/>
 
+    <div >
+        <span class="badge badge-info" style="padding: 8px;"><?= $active_count; ?></span> Total Terminals, with <span class="badge badge-danger" style="padding: 8px;"><?= $inactive_count; ?></span> offline.
+    <!-- Ignored Terminals:<span class="badge badge-secondary" style="padding: 8px;"><?= $ignore_count; ?></span> -->
+<?php
+//echo "ACTIVE = Ignore | Inactive : ".$active_count . " = " . $ignore_count . " | " . $inactive_count . "  ";
+?>
+     
+</div>
 
-    <?php if(!empty($data)) : ?>
+    <?php if(!empty($inactive_accounts)) : ?>
 
-        <h2>Inactive Terminals</h2>
+        <hr/>
+        <h2>Offline Terminals</h2>
         <!-- Table -->
         <table class="table table-striped table-bordered table-condensed">
             <thead>
@@ -129,74 +171,81 @@ include BASE_PATH . '/includes/header.php';
                     <th>Trading Account</th>
                     <th>VPS</th>
                     <th>Equity/Margin Level (%)</th>
-                    <th>Last Connection</th>
+                    <th>Last Contact</th>
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($data as $row): ?>
-                <?php if($row['account_type'] == 'demo' )  $demo = true; else $demo = false; ?>
-                <tr<?= ($demo) ? " style='background-color:#00FFFF;font-style:italic;'" : ""; ?>>    
+                <?php foreach ($inactive_accounts as $row): ?>
+                    <?php if($row['account_type'] == 'demo' )  $demo = true; else $demo = false; ?>
                     <?php
                         $dd_color = "none";
-                        $badge = "secondary";
-                        if( $row['equity'] <= $row['balance']*0.8 ){
-                            $dd_color = "#FFFF99";
-                            $badge = "info";
-                        }
-                        if( $row['equity'] <= $row['balance']*0.7 ){
-                            $dd_color = "#FF9999";
+                        $badge = "success";
+                        if( $row['equity'] < $row['balance']*0.8 ){
+                            // $dd_color = "#FFCC00";
                             $badge = "warning";
                         }
-                        if( $row['equity'] <= $row['balance']*0.6 ){
-                            $dd_color = "#FF3333";
+                        if( $row['equity'] < $row['balance']*0.7 ){
+                            $dd_color = "#FFCCCC";
+                            $badge = "warning";
+                        }
+                        if( $row['equity'] < $row['balance']*0.6 ){
+                            $dd_color = "#FF9999";
                             $badge = "danger";
                         }
                         $current_balance = (is_numeric($row['balance']))?htmlspecialchars($row['balance']):0;
                         $current_equity = (is_numeric($row['equity']))?htmlspecialchars($row['equity']):0;
-                    ?>
-                    <td><?php echo $row['friendly_name']; ?> (<?php echo htmlspecialchars($row['account']); ?>) <?php echo ($demo) ? "<br/><span class='small text-muted'>(demo)</span>":""; ?></td>
-                    <td><?php echo htmlspecialchars($row['vps_id']); ?></td>
-                    <td style="background-color: <?=$dd_color;?>">
 
-                        <?php
-                            $dd = $current_balance > 0 ? ($current_balance-$current_equity)/$current_balance*100 : 0;
-                        ?>                        
-                        <span>Equity
-                            <span class="badge badge-<?= $badge; ?>">
-                                <?php echo number_format(($dd<100)?-$dd:$dd,1);  ?>%
-                            </span><br/>
-                        </span>
-                        <span>Margin Level
-                            <span class="badge badge-<?= $badge; ?>">
-                                <?php echo number_format($row['margin_level'],1);  ?>%
-                            </span><br/>
-                        </span>
-                        <span>Open Trades
-                            <span class="badge badge-info">
-                                <?php echo $row['open_trades'];  ?>
-                            </span><br/>
-                        </span>                    
-                    </td>
-                        <?php
-                            $style = "";
-                            $last_update = $row['timestamp'];
-                            $ignore = $row['ignore_account'];
-                            if( $ignore != 1 ){
-                                if( strtotime($last_update) < time()-(60*5)){
-                                    $style = " style='background-color:#FFCC99;'";
+                    ?>                    
+                    <tr<?= ($demo) ? " style='background-color:#00FFFF;font-style:italic;'" : ""; ?>>    
+                        <td><?php echo $row['friendly_name']; ?> (<?php echo htmlspecialchars($row['account']); ?>) <?php echo ($demo) ? "<br/><span class='small text-muted'>(demo)</span>":""; ?></td>
+                        <td><?php echo htmlspecialchars($row['vps_id']); ?></td>
+                        <td style="background-color: <?=$dd_color;?>">
+
+                            <?php
+                                $dd = $current_balance > 0 ? ($current_balance-$current_equity)/$current_balance*100 : 0;
+                            ?>                        
+                            <span>Equity
+                                <span class="badge badge-<?= $badge; ?>">
+                                    <?php echo number_format(($dd<100)?-$dd:$dd,1);  ?>%
+                                </span><br/>
+                            </span>
+                            <span>Margin Level
+                                <span class="badge badge-<?= $badge; ?>">
+                                    <?php echo number_format($row['margin_level'],1);  ?>%
+                                </span><br/>
+                            </span>
+                            <span>Open Trades
+                                <span class="badge badge-info">
+                                    <?php echo $row['open_trades'];  ?>
+                                </span><br/>
+                            </span>                    
+                        </td>
+                            <?php
+                                $style = "";
+                                $last_update = $row['updated_at'];
+                                $ignore = $row['ignore_account'];
+                                if( $ignore != 1 ){
+                                    if( date("N") < 6 ){
+                                        if( strtotime($last_update) < time()-(60*5)){
+                                            $style = " style='background-color:#FFCC99;'";
+                                        }
+
+                                        if( strtotime($last_update) < time()-(60*15)){
+                                            $style = " style='background-color:#FF9999;'";
+                                        }
+                                    }
                                 }
-
-                                if( strtotime($last_update) < time()-(60*15)){
-                                    $style = " style='background-color:#FF3333;'";
-                                }
-                            }
-                        ?>
-                    <td<?= $style; ?>>
-
-                        <?php echo htmlspecialchars($last_update); ?>
-                        <?php echo ($ignore==1) ? "<br/><span class='small text-muted'>(ignored)</span>":""; ?>
-                    </td>
-                </tr>
+                            ?>
+                        <td<?= $style; ?>>
+                            <?php 
+                                if(!empty($style)) 
+                                    echo "<span class='badge badge-danger'>Offline for ".date("H:i:s",time()-strtotime($row['updated_at']))."</span><br/>"; 
+                            ?>
+                            Server: <?php echo htmlspecialchars($row['updated_at']); ?><br/>
+                            MT4 Server: <?php echo htmlspecialchars($row['timestamp']); ?>
+                            <?php echo ($ignore==1) ? "<br/><span class='small text-muted'>(ignored)</span>":""; ?>
+                        </td>
+                    </tr>
                 <?php endforeach;?>
             </tbody>
         </table>
@@ -204,30 +253,100 @@ include BASE_PATH . '/includes/header.php';
         
     <?php endif; ?>
 
-    <form class="form form-inline" action="" method="GET">
+    <?php if(!empty($trading_accounts)) : ?>
+        <hr/>
+        <h2>Trading Accounts</h2>
+        <!-- Table -->
+        <table class="table table-striped table-bordered table-condensed">
+            <thead>
+                <tr>
+                    <th>Trading Account</th>
+                    <th>Details</th>
+                    <th>Equity/Margin Level (%)</th>
+                    <th>P/L</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($trading_accounts as $row): ?>
+                    <?php if($row['account_type'] == 'demo' )  $demo = true; else $demo = false; ?>
+                    <?php
+                        $dd_color = "none";
+                        $badge = "success";
+                        if( $row['equity'] < $row['balance']*0.8 ){
+                            // $dd_color = "#FFCC00";
+                            $badge = "warning";
+                        }
+                        if( $row['equity'] < $row['balance']*0.7 ){
+                            $dd_color = "#FFCCCC";
+                            $badge = "warning";
+                        }
+                        if( $row['equity'] < $row['balance']*0.6 ){
+                            $dd_color = "#FF9999";
+                            $badge = "danger";
+                        }
+                        $current_balance = (is_numeric($row['balance']))?htmlspecialchars($row['balance']):0;
+                        $current_equity = (is_numeric($row['equity']))?htmlspecialchars($row['equity']):0;
 
-        <div class="clearfix">
-            <?php 
-                $autoupdate = isset($_GET['autoupdate']) && $_GET['autoupdate'] == 1 ? true : false;
-            ?>
-            <input type="hidden" name="autoupdate" value="<?php echo ($autoupdate)?"0":"1"; ?>" />
-            <input type="hidden" name="s" value="<?php echo $_GET['s']; ?>" />
-            <div class="pull-left float-left">
-                <button type="submit" class="btn btn-<?php echo ($autoupdate) ? "danger" : "success";  ?>" >
-                    Auto-update 
-                        <span class="glyphicon glyphicon-<?php echo $autoupdate ? "remove" : "refresh"; ?>"></span>
-                </button>
-                <input type='number' value="<?= isset($_GET['interval'])?$_GET['interval']:60;?>" name="interval" class="form-control" style="width:5em;" max="300" min="1" /> <span class="small">seconds</span>
-                 
-            </div>
-            <?php
-                if( $autoupdate ){
-                    echo "<script>setTimeout(function(){location.reload();}, ".(isset($_GET['interval'])?$_GET['interval']*1000:60000).");</script>";
-                }
-            ?>            
-        </div>
-    </form>
+                    ?>                    
+                    <tr<?= ($demo) ? " style='background-color:#00FFFF;font-style:italic;'" : ""; ?>>    
 
+                        <td><strong><?php echo $row['friendly_name']; ?></strong><br/>
+                            (<?php echo htmlspecialchars($row['server']); ?>)
+                             <?php echo ($demo) ? "<br/><span class='small text-muted'>(demo)</span>":""; ?></td>
+                        <td>
+                            <?php echo $row['currency']; ?><br/>
+                            1:<?php echo $row['leverage']; ?><br/>
+                            <span class="badge badge-<?php echo $row['trade_permitted']==1 ? "success":"danger";?>">Trade <?php echo $row['trade_permitted']==1?"":"NOT"; ?> Permitted</span><br/>
+                            <span class="badge badge-<?php echo $row['account_type']=="real" ? "primary":($row['account_type']=="demo"?"secondary":"warning");?>"><?php echo ucfirst($row['account_type']); ?> Account</span><br/>
+                        </td>
+                        <td style="background-color: <?=$dd_color;?>">
+
+                            <?php
+                                $dd = $current_balance > 0 ? ($current_balance-$current_equity)/$current_balance*100 : 0;
+                            ?>                        
+                            <span>Equity
+                                <span class="badge badge-<?= $badge; ?>">
+                                    <?php echo number_format(($dd<100)?-$dd:$dd,1);  ?>%
+                                </span><br/>
+                            </span>
+                            <span>Margin Level
+                                <span class="badge badge-<?= $badge; ?>">
+                                    <?php echo number_format($row['margin_level'],1);  ?>%
+                                </span><br/>
+                            </span>
+                            <span>Open Trades
+                                <span class="badge badge-info">
+                                    <?php echo $row['open_trades'];  ?>
+                                </span><br/>
+                            </span>                    
+                        </td>
+                        <td>
+                            <?php
+                                $start_balance_day = (is_numeric($row['start_balance_day']))?htmlspecialchars($row['start_balance_day']):0;
+                                $start_balance_week = (is_numeric($row['start_balance_week']))?htmlspecialchars($row['start_balance_week']):0;
+                                $start_balance_month = (is_numeric($row['start_balance_month']))?htmlspecialchars($row['start_balance_month']):0;
+                                $start_balance_3month = (is_numeric($row['start_balance_3month']))?htmlspecialchars($row['start_balance_3month']):0;
+                                $start_balance_year = (is_numeric($row['start_balance_year']))?htmlspecialchars($row['start_balance_year']):0;
+
+                                if( $start_balance_day > 0 )
+                                    echo "<span class='badge badge-dark'>Day</span> ".number_format(($current_balance-$start_balance_day)/$start_balance_day*100,2)."%<br/>"; 
+                               if( $start_balance_week > 0 )
+                                    echo "<span class='badge badge-secondary'>Week</span> ".number_format(($current_balance-$start_balance_week)/$start_balance_week*100,2)."%<br/>"; 
+                               if( $start_balance_month > 0 )
+                                    echo "<span class='badge badge-info'>Month</span> ".number_format(($current_balance-$start_balance_month)/$start_balance_month*100,2)."%<br/>";
+                                if( $start_balance_3month > 0 )
+                                    echo "<span class='badge badge-primary'>3Month</span> ".number_format(($current_balance-$start_balance_3month)/$start_balance_3month*100,2)."%<br/>";
+                                if( $start_balance_year > 0 )
+                                    echo "<span class='badge badge-success'>Year</span> ".number_format(($current_balance-$start_balance_year)/$start_balance_year*100,2)."%<br/>";                                                     
+                            ?>
+                        </td>                        
+                    </tr>
+                    <?php endforeach;?>
+            </tbody>
+        </table>
+        <!-- //Table -->
+        
+    <?php endif; ?>
 </div>
 <!-- //Main container -->
 <?php include BASE_PATH . '/includes/footer.php';?>
