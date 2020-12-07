@@ -53,7 +53,7 @@ $select = array(
     'stopout_type',
     'balance', 
     'timestamp', 
-    'updated_at', 
+    'ping', 
     'friendly_name', 
     'account_type',
     'start_balance_day',
@@ -101,7 +101,7 @@ $rows2 = $demo_accounts = array();
 
 if(!empty($rows)){
     foreach ($rows as $row){
-
+        $row['equity_perc'] = $row['balance'] > 0 ? ($row['profit']/$row['balance'])*100 : 0;
         if( $row['account_type'] == 'demo' ){
             if( isset($demo_accounts[$row['account'].$row['server']]) && 
                 strtotime($demo_accounts[$row['account'].$row['server']]['timestamp']) < strtotime($row['timestamp']) ) 
@@ -116,7 +116,10 @@ if(!empty($rows)){
         if( strtotime($rows2[$row['account'].$row['server']]['timestamp']) < strtotime($row['timestamp']) ) $rows2[$row['account'].$row['server']] = $row;
 
     }
-
+    uasort($rows2, function($a, $b) {
+        //return $a['balance'] - $b['balance'];
+        return $a['equity_perc'] - $b['equity_perc'];
+    });
     $rows2 = array_merge($rows2,$demo_accounts);
 }
 
@@ -178,8 +181,14 @@ if ($order_by == 'Desc') {
 }
 ?>>Desc</option>
             </select>
-            <label>Only REAL accounts: <input type="checkbox" name="demo" <?php if(isset($_GET['demo'])) echo "checked='checked'"; ?>/></label>
-            <input type="submit" value="Go" class="btn btn-primary">            
+            <div class="input-group">
+              <span class="input-group-addon">
+                <input type="checkbox" aria-label="demo" name="demo" <?php if(isset($_GET['demo'])) echo "checked='checked'"; ?>>
+              </span>
+              <span class="form-control" aria-label="demo">Show only Real Accounts</span>
+            </div><!-- /input-group -->   
+
+            <input type="submit" value="Search" class="btn btn-primary">            
         </form>
           
     </div>
@@ -266,12 +275,12 @@ if ($order_by == 'Desc') {
 
                     ?>                    
                     <tr style="<?php 
-                            echo ($demo) ? "background-color:#00FFFF;font-style:italic;": "";
+                            echo ($demo) ? "background-color:#CCFFFA;font-style:italic;": "";
                             echo ($ignore==1) ? "color:#aaa;": "";
                         ?>">    
                         <td>
                             <strong><?php echo $row['friendly_name']; ?></strong><br/>
-                            (<a href="/mql4messages.php?search_string=<?php echo htmlspecialchars($row['account']); ?>"><?php echo htmlspecialchars($row['account']); ?></a>, <?php echo htmlspecialchars($row['server']); ?>)
+                            (<a href="/mql4messages.php?search_string=<?php echo htmlspecialchars($row['account']); ?>"><?php echo htmlspecialchars($row['account']); ?></a>, <?php echo htmlspecialchars($row['server']); ?>) 
                         </td>
                         <td style="background-color: <?=$dd_color;?>">
                             <span class="badge badge-primary">Balance</span> <?php echo number_format($current_balance,2); ?><br/>
@@ -323,7 +332,7 @@ if ($order_by == 'Desc') {
                         
                             <?php
                                 $style = "";
-                                $last_update = $row['updated_at'];
+                                $last_update = $row['ping'];
                                 if( $ignore != 1 ){
                                     if(date("N") < 6){
                                         if( strtotime($last_update) < time()-(60*5)){
@@ -339,10 +348,16 @@ if ($order_by == 'Desc') {
                         <td<?= $style; ?>>
                             <?php 
                                 if(!empty($style)) 
-                                    echo "<span class='badge badge-danger'>Offline for ".date("H:i:s",time()-strtotime($row['updated_at']))."</span><br/>"; 
+                                    echo "<span class='badge badge-danger'>Offline for ".date("H:i:s",time()-strtotime($row['ping']))."</span><br/>"; 
                             ?>
-                            Server: <?php echo htmlspecialchars($row['updated_at']); ?><br/>
-                            MT4 Server: <?php echo htmlspecialchars($last_update); ?>
+                            Server: <?php echo htmlspecialchars($row['ping']); ?><br/>
+                            MT4 Server: <?php echo htmlspecialchars($row['timestamp']); ?>
+                            <?php
+                                $t = "";
+                                if( $row['timestamp'] > $last_update ) $t = "+"; // mt4 is after server : +
+                                else $t = ""; // mt4 is before server: -
+                                echo "({$t}".round((strtotime($row['timestamp']) - strtotime($last_update) )/60/60)."hrs)";
+                            ?>                            
                             <?php echo ($ignore==1) ? "<br/><span class='small text-muted'>(ignored)</span>":""; ?>
                         </td>
 
@@ -474,6 +489,18 @@ if ($order_by == 'Desc') {
             <?php endif; ?>
         </table>
         <!-- //Table -->
+    <div>
+        Status page: <?php
+            $db->where('id',$_SESSION['user_id']);
+            $secret = $db->getOne('admin_accounts','secret');
+            
+            // echo "<pre>";print_r($_SERVER);echo "</pre>";
+            if( isset($secret['secret'])) {
+                $url = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]/mt4status.php?s=".$secret['secret'];
+                echo "<a href='{$url}'>{$url}</a>";
+            }
+        ?>
+    </div>        
     <!-- Pagination -->
     <div class="text-center">
     <?php echo paginationLinks($page, $total_pages, 'mql4update.php'); ?>

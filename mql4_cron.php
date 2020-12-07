@@ -41,31 +41,51 @@ $select = array('id',
 //If order by option selected
 $db->orderBy($filter_col, $order_by);
 
-$db->where('timestamp',date("Y-m-d H:i:s",time()-60*15),'<');
-$db->where("ignore_account",0);
-$db->orwhere("ignore_account IS NULL");
+$db->where('updated_at',date("Y-m-d H:i:s",time()-60*15),'<');
+$db->where("ignore_account","0","=");
+$db->where("last_notification",time()-(60*60*1),"<"); // 1 hour
 
 // Set pagination limit
 $db->pageLimit = 100;
 
 // Get result of the query.
 $rows = $db->arraybuilder()->paginate('mql4message', 1, $select);
-$data = $notify = array();
 
+$data_rows = $demo_rows = $offline_rows = array();
+$ignore_count = $demo_count = $terminal_count = $vps_count = $offline_count = 0;
+
+echo count($rows);
+// organise by VPS
 if( !empty($rows) ){
     foreach ($rows as $row) {
-        $data[$row['user_id']][] = $row;
-        if( strtotime($row['last_notification']) < time()-(60*15) ){
-            $notify[$row['user_id']] = 1;
+        if( $row['ignore_account'] == 1) continue;
+        if( $row['account_type'] == 'demo' ) $demo_count++;
+        if( date("N") < 8 ) {   // only offline during weekdays
+            $offline_rows[$row['user_id']][$row['vps_id']][] = $row;
+            $data_rows[] = $row['id'];
+        }
+
+        $terminal_count++;
+    }
+    unset($rows);
+}
+print_r($offline_rows); // offline terminals organised by user_id => vps_id
+//print_r($data_rows);    // list of id's to update with last_notification
+
+if( !empty($offline_rows) ){
+    foreach ($offline_rows as $user_id => $vps) {
+        $db->where('id',$user_id);
+        $email = $db->getOne('admin_accounts','email');
+        if( !empty($email) ){
+            // got user email, continue
+            // store notified ids of terminals for last_notification update
+
         }
     }
-    foreach ($data as $uid => $row) {
-        
-    }
+
 }
 
-print_r($data);
-print_r($notify);
+
 die();
 
 include BASE_PATH . '/includes/header.php';

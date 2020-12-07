@@ -32,6 +32,7 @@ $select = array('id',
     'server', 
     'vps_id',
     'equity',
+    'profit',
     'currency',
     'leverage',
     'open_trades',
@@ -42,7 +43,7 @@ $select = array('id',
     'account_type',
     'trade_permitted',
     'ignore_account',
-    'updated_at',
+    'ping',
     'start_balance_day',
     'start_balance_week',
     'start_balance_month',
@@ -74,21 +75,29 @@ $inactive_accounts = $notify = $trading_accounts = $demo_accounts = array();
 $ignore_count = $active_count = $inactive_count =0;
 
 if( !empty($rows) ){
-    foreach ($rows as $row) {
+    foreach ($rows as $row) {        
         if( $row['ignore_account'] == 1 ) {
             $ignore_count++;
             continue;
         }
 
+        $row['equity_perc'] = $row['balance'] > 0 ? ($row['profit']/$row['balance'])*100 : 0;
+
         if( $row['account_type']=="demo" ) $demo_accounts[$row['account'].$row['server']] = $row;
         else $trading_accounts[$row['account'].$row['server']] = $row;
 
-        if( date("N") < 6 && strtotime($row['updated_at']) < time()-(60*15)){
+        if( date("N") < 6 && strtotime($row['ping']) < time()-(60*15)){
             $inactive_count++;
             $inactive_accounts[] = $row;
             continue;
         }    
     }
+
+    uasort($trading_accounts, function($a, $b) {
+        //return $a['balance'] - $b['balance'];
+        return $a['equity_perc'] - $b['equity_perc'];
+    });
+
     $trading_accounts = array_merge($trading_accounts, $demo_accounts);
 
 }
@@ -196,8 +205,9 @@ include BASE_PATH . '/includes/header.php';
                         $current_equity = (is_numeric($row['equity']))?htmlspecialchars($row['equity']):0;
 
                     ?>                    
-                    <tr<?= ($demo) ? " style='background-color:#00FFFF;font-style:italic;'" : ""; ?>>    
-                        <td><?php echo $row['friendly_name']; ?> (<?php echo htmlspecialchars($row['account']); ?>) <?php echo ($demo) ? "<br/><span class='small text-muted'>(demo)</span>":""; ?></td>
+                    <tr<?= ($demo) ? " style='background-color:#CCFFFA;font-style:italic;'" : ""; ?>>    
+                        <td><?php echo $row['friendly_name']; ?> (<?php echo htmlspecialchars($row['account']); ?>) 
+                        </td>
                         <td><?php echo htmlspecialchars($row['vps_id']); ?></td>
                         <td style="background-color: <?=$dd_color;?>">
 
@@ -222,7 +232,7 @@ include BASE_PATH . '/includes/header.php';
                         </td>
                             <?php
                                 $style = "";
-                                $last_update = $row['updated_at'];
+                                $last_update = $row['ping'];
                                 $ignore = $row['ignore_account'];
                                 if( $ignore != 1 ){
                                     if( date("N") < 6 ){
@@ -239,9 +249,9 @@ include BASE_PATH . '/includes/header.php';
                         <td<?= $style; ?>>
                             <?php 
                                 if(!empty($style)) 
-                                    echo "<span class='badge badge-danger'>Offline for ".date("H:i:s",time()-strtotime($row['updated_at']))."</span><br/>"; 
+                                    echo "<span class='badge badge-danger'>Offline for ".date("H:i:s",time()-strtotime($row['ping']))."</span><br/>"; 
                             ?>
-                            Server: <?php echo htmlspecialchars($row['updated_at']); ?><br/>
+                            Server: <?php echo htmlspecialchars($row['ping']); ?><br/>
                             MT4 Server: <?php echo htmlspecialchars($row['timestamp']); ?>
                             <?php echo ($ignore==1) ? "<br/><span class='small text-muted'>(ignored)</span>":""; ?>
                         </td>
@@ -288,11 +298,11 @@ include BASE_PATH . '/includes/header.php';
                         $current_equity = (is_numeric($row['equity']))?htmlspecialchars($row['equity']):0;
 
                     ?>                    
-                    <tr<?= ($demo) ? " style='background-color:#00FFFF;font-style:italic;'" : ""; ?>>    
+                    <tr<?= ($demo) ? " style='background-color:#CCFFFA;font-style:italic;'" : ""; ?>>    
 
                         <td><strong><?php echo $row['friendly_name']; ?></strong><br/>
                             (<?php echo htmlspecialchars($row['server']); ?>)
-                             <?php echo ($demo) ? "<br/><span class='small text-muted'>(demo)</span>":""; ?></td>
+                        </td>
                         <td>
                             <?php echo $row['currency']; ?><br/>
                             1:<?php echo $row['leverage']; ?><br/>
