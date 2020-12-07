@@ -33,7 +33,8 @@ Array
     [account_type] => real
     [stopout_type] => percent
     [vps_id] => Contabo-1152
-    [timestamp] => 1605136371
+    [timestamp] => 1605136371       // MT4 Server time
+    [ping] => 1605136371            // Dashboard server time
 )
 */
 
@@ -60,11 +61,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($user_id) )
     //print_r($data_to_update);
     //print_r($row); die();
 
-//var_dump($data_to_update);
+// var_dump($data_to_update);
 
-    $ts = strtotime($data_to_update['timestamp']);
+    $ts = $data_to_update['timestamp']; // mt4 server time
     $data_to_update['updated_at'] = date('Y-m-d H:i:s');
-    //$data_to_update['timestamp'] = date('Y-m-d H:i:s',$data_to_update['timestamp']);
+    $data_to_update['ping'] = date('Y-m-d H:i:s'); // dashboard server time
+    $data_to_update['timestamp'] = date('Y-m-d H:i:s',$data_to_update['timestamp']);
 
     // balance for day/week/month
     if( $ts > strtotime( 'monday this week', $ts ) && strtotime($row['timestamp']) < strtotime( 'monday this week', $ts ) ){

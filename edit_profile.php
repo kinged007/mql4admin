@@ -18,28 +18,50 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 	$data_to_update = filter_input_array(INPUT_POST);
 	//Check whether the user name already exists ;
 	$db = getDbInstance();
-	$db->where('user_name', $data_to_update['user_name']);
-	$db->where('id', $admin_user_id, '!=');
+	// $db->where('user_name', $data_to_update['user_name']);
+	$db->where('id', $admin_user_id, '=');
 	//print_r($data_to_update['user_name']);die();
 	$row = $db->getOne('admin_accounts');
 	//print_r($data_to_update['user_name']);
 	//print_r($row); die();
 
-	if (!empty($row['user_name'])) {
+	// if (empty($row['user_name'])) {
 
-		$_SESSION['failure'] = "User name already exists";
+	// 	$_SESSION['failure'] = "User name already exists";
 
-		$query_string = http_build_query(array(
-			'admin_user_id' => $admin_user_id,
-			'operation' => $operation,
-		));
-		header('location: edit_admin.php?'.$query_string );
+	// 	$query_string = http_build_query(array(
+	// 		'admin_user_id' => $admin_user_id,
+	// 		'operation' => $operation,
+	// 	));
+	// 	header('location: edit_admin.php?'.$query_string );
+	// 	exit;
+	// }
+
+	$password = filter_input(INPUT_POST, 'current_password');
+
+	// var_dump($data_to_update);
+	// var_dump($password);
+	// var_dump($row);
+	// var_dump(password_verify($password, $row['password']));
+	// die();
+
+	if( !isset($data_to_update['current_password']) || !password_verify($password, $row['password'])){
+		$_SESSION['failure'] = "Failed to update due to password failure";
+		header('location: edit_profile.php');
 		exit;
 	}
 
+	unset($data_to_update['current_password']);
+	
 	//$admin_user_id = filter_input(INPUT_GET, 'admin_user_id', FILTER_VALIDATE_INT);
 	//Encrypting the password
-	$data_to_update['password'] = password_hash($data_to_update['password'], PASSWORD_DEFAULT);
+	if( empty($data_to_update['password']) ) unset($data_to_update['password']);
+	else $data_to_update['password'] = password_hash($data_to_update['password'], PASSWORD_DEFAULT);
+
+	// $email = $data_to_update['email'];
+	// $data_to_update['email'] = filter_input(INPUT_GET,'email',FILTER_VALIDATE_EMAIL);
+	// var_dump($data_to_update);
+	// die();
 
 	$db = getDbInstance();
 	$db->where('id', $admin_user_id);
