@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($user_id) )
 
 // var_dump($data_to_update);
 
-    $ts = $data_to_update['timestamp']; // mt4 server time
+    $ts = strtotime($data_to_update['timestamp']); // mt4 server time
     $data_to_update['updated_at'] = date('Y-m-d H:i:s');
     $data_to_update['ping'] = date('Y-m-d H:i:s'); // dashboard server time
     $data_to_update['timestamp'] = date('Y-m-d H:i:s',$data_to_update['timestamp']);
