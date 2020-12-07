@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($user_id) )
     $ts = strtotime($data_to_update['timestamp']); // mt4 server time
     $data_to_update['updated_at'] = date('Y-m-d H:i:s');
     $data_to_update['ping'] = date('Y-m-d H:i:s'); // dashboard server time
-    $data_to_update['timestamp'] = date('Y-m-d H:i:s',$data_to_update['timestamp']);
+    // $data_to_update['timestamp'] = date('Y-m-d H:i:s',$data_to_update['timestamp']);
 
     // balance for day/week/month
     if( $ts > strtotime( 'monday this week', $ts ) && strtotime($row['timestamp']) < strtotime( 'monday this week', $ts ) ){
