@@ -101,7 +101,7 @@ $rows2 = $demo_accounts = array();
 
 if(!empty($rows)){
     foreach ($rows as $row){
-        $row['equity_perc'] = $row['balance'] > 0 ? ($row['profit']/$row['balance'])*100 : 0;
+        $row['equity_factor_sort'] = $row['balance'] > 0 ? ($row['profit']/$row['balance'])*10000 : 0;
         if( $row['account_type'] == 'demo' ){
             if( isset($demo_accounts[$row['account'].$row['server']]) && 
                 strtotime($demo_accounts[$row['account'].$row['server']]['timestamp']) < strtotime($row['timestamp']) ) 
@@ -118,7 +118,7 @@ if(!empty($rows)){
     }
     uasort($rows2, function($a, $b) {
         //return $a['balance'] - $b['balance'];
-        return $a['equity_perc'] - $b['equity_perc'];
+        return $a['equity_factor_sort'] - $b['equity_factor_sort'];
     });
     $rows2 = array_merge($rows2,$demo_accounts);
 }
@@ -348,8 +348,11 @@ if ($order_by == 'Desc') {
                         <td<?= $style; ?>>
                             <?php 
                                 if(!empty($style)) 
-                                    echo "<span class='badge badge-danger'>Offline for ".date("H:i:s",time()-strtotime($row['ping']))."</span><br/>"; 
+                                    echo "<span class='badge badge-danger'>Offline for ";
+                                    echo (time()-strtotime($row['ping'])>24*60*60) ? floor(abs(time() - strtotime($row['ping'])) / 86400) . " days, " . date("H:i",time()-strtotime($row['ping'])) : date("H:i",time()-strtotime($row['ping']));
+                                    echo " (Hr:min)</span><br/>"; 
                             ?>
+
                             Server: <?php echo htmlspecialchars($row['ping']); ?><br/>
                             MT4 Server: <?php echo htmlspecialchars($row['timestamp']); ?>
                             <?php

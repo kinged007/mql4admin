@@ -81,7 +81,7 @@ if( !empty($rows) ){
             continue;
         }
 
-        $row['equity_perc'] = $row['balance'] > 0 ? ($row['profit']/$row['balance'])*100 : 0;
+        $row['equity_factor_sort'] = $row['balance'] > 0 ? ($row['profit']/$row['balance'])*10000 : 0;
 
         if( $row['account_type']=="demo" ) $demo_accounts[$row['account'].$row['server']] = $row;
         else $trading_accounts[$row['account'].$row['server']] = $row;
@@ -95,7 +95,7 @@ if( !empty($rows) ){
 
     uasort($trading_accounts, function($a, $b) {
         //return $a['balance'] - $b['balance'];
-        return $a['equity_perc'] - $b['equity_perc'];
+        return $a['equity_factor_sort'] - $b['equity_factor_sort'];
     });
 
     $trading_accounts = array_merge($trading_accounts, $demo_accounts);
@@ -103,7 +103,7 @@ if( !empty($rows) ){
 }
 
 $active_count = count($rows) - $ignore_count;
-//print_r($trading_accounts);
+// print_r($trading_accounts);
 
 // print_r($notify);
 
@@ -249,8 +249,11 @@ include BASE_PATH . '/includes/header.php';
                         <td<?= $style; ?>>
                             <?php 
                                 if(!empty($style)) 
-                                    echo "<span class='badge badge-danger'>Offline for ".date("H:i:s",time()-strtotime($row['ping']))."</span><br/>"; 
+                                    echo "<span class='badge badge-danger'>Offline for ";
+                                    echo (time()-strtotime($row['ping'])>24*60*60) ? floor(abs(time() - strtotime($row['ping'])) / 86400) . " days, " . date("H:i",time()-strtotime($row['ping'])) : date("H:i",time()-strtotime($row['ping']));
+                                    echo " (Hr:min)</span><br/>"; 
                             ?>
+
                             Server: <?php echo htmlspecialchars($row['ping']); ?><br/>
                             MT4 Server: <?php echo htmlspecialchars($row['timestamp']); ?>
                             <?php echo ($ignore==1) ? "<br/><span class='small text-muted'>(ignored)</span>":""; ?>

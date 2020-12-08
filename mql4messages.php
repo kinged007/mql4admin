@@ -49,7 +49,7 @@ $select = array('id',
     'free_margin',
     'balance', 
     'timestamp', 
-    'updated_at', 
+    'ping', 
     'friendly_name', 
     'account_type',
     'ignore_account',
@@ -86,16 +86,20 @@ $db->pageLimit = $pagelimit;
 $rows = $db->arraybuilder()->paginate('mql4message', $page, $select);
 $total_pages = $db->totalPages;
 
-$data_rows = $demo_rows = array();
+$data_rows = $demo_rows = $offline_rows = array();
 $ignore_count = $demo_count = $terminal_count = $vps_count = $offline_count = 0;
 
 // organise by VPS
 if( !empty($rows) ){
     foreach ($rows as $row) {
+        $row['equity_perc'] = $row['balance'] > 0 ? ($row['profit']/$row['balance'])*100 : 0;
         if( isset($_GET['ignored']) && $row['ignore_account'] == 1) continue;
         if($row['account_type'] == 'demo' ) $demo_count++;
         if($row['ignore_account'] == '1' ) $ignore_count++;
-        if($row['ignore_account'] != '1' && date("N") < 6 && strtotime($row['updated_at']) < time()-(60*15)) $offline_count++;
+        if($row['ignore_account'] != '1' && date("N") < 6 && strtotime($row['ping']) < time()-(60*15)) {
+            $offline_count++;
+            $offline_rows[$row['vps_id']][] = $row;
+        }
 
         if(!isset($data_rows[$row['vps_id']])) $vps_count++;
 
@@ -104,8 +108,12 @@ if( !empty($rows) ){
         $terminal_count++;
     }
     unset($rows);
+
 }
 
+if( isset($_GET['offline']) ){
+    $data_rows = $offline_rows;
+}
 
 include BASE_PATH . '/includes/header.php';
 ?>
@@ -131,27 +139,46 @@ include BASE_PATH . '/includes/header.php';
             <label for="input_order">Order By</label>
             <select name="filter_col" class="form-control">
                 <?php
-foreach ($Mql4Messages->setOrderingValues() as $opt_value => $opt_name):
-	($order_by === $opt_value) ? $selected = 'selected' : $selected = '';
-	echo ' <option value="' . $opt_value . '" ' . $selected . '>' . $opt_name . '</option>';
-endforeach;
-?>
+                    foreach ($Mql4Messages->setOrderingValues() as $opt_value => $opt_name):
+                    	($order_by === $opt_value) ? $selected = 'selected' : $selected = '';
+                    	echo ' <option value="' . $opt_value . '" ' . $selected . '>' . $opt_name . '</option>';
+                    endforeach;
+                    ?>
+                                </select>
+                                <select name="order_by" class="form-control" id="input_order">
+                                    <option value="Asc" <?php
+                    if ($order_by == 'Asc') {
+                    	echo 'selected';
+                    }
+                    ?> >Asc</option>
+                                    <option value="Desc" <?php
+                    if ($order_by == 'Desc') {
+                    	echo 'selected';
+                    }
+                    ?>>Desc</option>
             </select>
-            <select name="order_by" class="form-control" id="input_order">
-                <option value="Asc" <?php
-if ($order_by == 'Asc') {
-	echo 'selected';
-}
-?> >Asc</option>
-                <option value="Desc" <?php
-if ($order_by == 'Desc') {
-	echo 'selected';
-}
-?>>Desc</option>
-            </select>
-            <label>Only REAL accounts: <input type="checkbox" name="demo" <?php if(isset($_GET['demo'])) echo "checked='checked'"; ?>/></label>
-            <label>Ignore Ignored: <input type="checkbox" name="ignored" <?php if(isset($_GET['ignored'])) echo "checked='checked'"; ?>/></label>
-            <input type="submit" value="Go" class="btn btn-primary">            
+            
+
+            <div class="input-group">
+              <span class="input-group-addon">
+                <input type="checkbox" aria-label="demo" name="demo" <?php if(isset($_GET['demo'])) echo "checked='checked'"; ?>>
+              </span>
+              <span class="form-control" aria-label="demo">Show only Real Accounts</span>
+            </div><!-- /input-group -->   
+            <div class="input-group">
+              <span class="input-group-addon">
+                <input type="checkbox" aria-label="ignored" name="ignored" <?php if(isset($_GET['ignored'])) echo "checked='checked'"; ?>>
+              </span>
+              <span class="form-control" aria-label="demo">Do not show Ignored Terminals</span>
+            </div><!-- /input-group -->       
+            <div class="input-group">
+              <span class="input-group-addon">
+                <input type="checkbox" aria-label="offline" name="offline" <?php if(isset($_GET['offline'])) echo "checked='checked'"; ?>>
+              </span>
+              <span class="form-control" aria-label="demo">Show only Offline</span>
+            </div><!-- /input-group -->       
+
+            <input type="submit" value="Search" class="btn btn-primary">            
         </form>
           
     </div>
@@ -169,6 +196,7 @@ if ($order_by == 'Desc') {
                 if( isset($_GET['order_by']      ) ) $query["order_by"] = $_GET['order_by'];
                 if( isset($_GET['demo']          ) ) $query["demo"] = $_GET['demo'];
                 if( isset($_GET['ignored']          ) ) $query["ignored"] = $_GET['ignored'];
+                if( isset($_GET['offline']          ) ) $query["offline"] = $_GET['offline'];
                 if( !empty($query) ){
                     foreach ($query as $key => $value) {
                         echo "<input type='hidden' name='{$key}' value='{$value}'/>";
@@ -230,7 +258,7 @@ if ($order_by == 'Desc') {
                         $ignore = $row['ignore_account'];
                     ?>
                     <tr style="<?php 
-                            echo ($demo) ? "background-color:#00FFFF;font-style:italic;": "";
+                            echo ($demo) ? "background-color:#CCFFFA;font-style:italic;": "";
                             echo ($ignore==1) ? "color:#dcd;": "";
                         ?>">    
                         <?php
@@ -287,7 +315,7 @@ if ($order_by == 'Desc') {
                         </td>                        
                             <?php
                                 $style = "";
-                                $last_update = $row['updated_at'];
+                                $last_update = $row['ping'];
                                 if( $ignore != 1 ){
                                     if( date("N") < 6 ){
                                         if( strtotime($last_update) < time()-(60*5)){
@@ -303,15 +331,17 @@ if ($order_by == 'Desc') {
                         <td<?= $style; ?>>
                             <?php 
                                 if(!empty($style)) 
-                                    echo "<span class='badge badge-danger'>Offline for ".date("H:i:s",time()-strtotime($row['updated_at']))."</span><br/>"; 
+                                    echo "<span class='badge badge-danger'>Offline for ";
+                                    echo (time()-strtotime($row['ping'])>24*60*60) ? floor(abs(time() - strtotime($row['ping'])) / 86400) . " days, " . date("H:i",time()-strtotime($row['ping'])) : date("H:i",time()-strtotime($row['ping']));
+                                    echo " (Hr:min)</span><br/>"; 
                             ?>
-                            Server: <?php echo htmlspecialchars($row['updated_at']); ?><br/>
-                            MT4 Server: <?php echo htmlspecialchars($last_update); ?>
+                            Server: <?php echo htmlspecialchars($row['ping']); ?><br/>
+                            MT4 Server: <?php echo htmlspecialchars($row['timestamp']); ?>
                             <?php
                                 $t = "";
                                 if( $row['timestamp'] > $last_update ) $t = "+"; // mt4 is after server : +
-                                else $t = "-"; // mt4 is before server: -
-                                echo "<br>({$t}".round((strtotime($row['timestamp']) - strtotime($last_update) )/60/60)."hrs)";
+                                else $t = ""; // mt4 is before server: -
+                                echo "({$t}".round((strtotime($row['timestamp']) - strtotime($last_update) )/60/60)."hrs)";
                             ?>
                             <?php echo ($ignore==1) ? "<br/><span class='small text-muted'>(ignored)</span>":""; ?>
 
