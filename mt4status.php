@@ -249,13 +249,12 @@ include BASE_PATH . '/includes/header.php';
                         <td<?= $style; ?>>
                             <?php 
                                 if(!empty($style)) {
-                                    echo "<span class='badge badge-danger'>Offline for ";
+                                    echo "<span class='badge badge-danger'>OFFLINE for ";
                                     echo (time()-strtotime($row['ping'])>24*60*60) ? floor(abs(time() - strtotime($row['ping'])) / 86400) . " days, " . date("H:i",time()-strtotime($row['ping'])) : date("H:i",time()-strtotime($row['ping']));
                                     echo " (Hr:min)</span><br/>"; 
-                                }
+                                } else echo "<span class='badge badge-success'>Online</span><br/>";
                             ?>
-
-                            Server: <?php echo htmlspecialchars($row['ping']); ?><br/>
+                            Dashboard: <?php echo htmlspecialchars($row['ping']); ?><br/>
                             MT4 Server: <?php echo htmlspecialchars($row['timestamp']); ?>
                             <?php echo ($ignore==1) ? "<br/><span class='small text-muted'>(ignored)</span>":""; ?>
                         </td>
