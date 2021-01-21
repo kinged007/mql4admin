@@ -39,6 +39,7 @@ $select = array(
     'id',
     'user_id', 
     'account', 
+    'name', // user/client account name with broker
     'server', 
     'vps_id',
     'equity',
@@ -97,10 +98,14 @@ $db->pageLimit = $pagelimit;
 $rows = $db->arraybuilder()->paginate('mql4message', $page, $select);
 $total_pages = $db->totalPages;
 
-$rows2 = $demo_accounts = array();
+$rows2 = $demo_accounts = $accounts = array();
 
 if(!empty($rows)){
     foreach ($rows as $row){
+        $accounts[] = $row['name'];
+        if( isset($_GET['account']) && !empty($_GET['account'])){
+            if($row['name'] != $_GET['account']) continue;
+        }
         $row['equity_factor_sort'] = $row['balance'] > 0 ? ($row['profit']/$row['balance'])*10000 : 0;
         if( $row['account_type'] == 'demo' ){
             if( isset($demo_accounts[$row['account'].$row['server']]) && 
@@ -121,6 +126,8 @@ if(!empty($rows)){
         return $a['equity_factor_sort'] - $b['equity_factor_sort'];
     });
     $rows2 = array_merge($rows2,$demo_accounts);
+    $accounts = array_unique($accounts);
+    sort($accounts, SORT_STRING | SORT_NATURAL);
 }
 
 
@@ -187,6 +194,19 @@ if ($order_by == 'Desc') {
               </span>
               <span class="form-control" aria-label="demo">Show only Real Accounts</span>
             </div><!-- /input-group -->   
+
+            <select name="account" class="form-control" id="input_order">
+                <option value="">-- Filter by Account --</option>
+                <?php if(!empty($accounts)) : foreach( $accounts as $account ) : ?>
+                    <option value="<?php echo $account; ?>" <?php
+                        if (isset($_GET['account']) && $_GET['account'] == $account) {
+                            echo 'selected';
+                        }
+                        ?> ><?php echo $account; ?>
+                        
+                    </option>    
+                <?php endforeach; endif; ?>
+            </select>            
 
             <input type="submit" value="Search" class="btn btn-primary">            
         </form>
@@ -280,7 +300,8 @@ if ($order_by == 'Desc') {
                         ?>">    
                         <td>
                             <strong><?php echo $row['friendly_name']; ?></strong><br/>
-                            (<a href="/mql4messages.php?search_string=<?php echo htmlspecialchars($row['account']); ?>"><?php echo htmlspecialchars($row['account']); ?></a>, <?php echo htmlspecialchars($row['server']); ?>) 
+                            (<a href="/mql4messages.php?search_string=<?php echo htmlspecialchars($row['account']); ?>"><?php echo htmlspecialchars($row['account']); ?></a>, <?php echo htmlspecialchars($row['server']); ?>) <br/>
+                            <span class="small">[<?php echo $row['name']; ?>]</span>
                         </td>
                         <td style="background-color: <?=$dd_color;?>">
                             <span class="badge badge-primary">Balance</span> <?php echo number_format($current_balance,2); ?><br/>
@@ -334,7 +355,7 @@ if ($order_by == 'Desc') {
                                 $style = "";
                                 $last_update = $row['ping'];
                                 if( $ignore != 1 ){
-                                    if(date("N") < 6){
+                                    if(is_check_day()){
                                         if( strtotime($last_update) < time()-(60*5)){
                                             $style = " style='background-color:#FFCC99;'";
                                         }
@@ -351,6 +372,8 @@ if ($order_by == 'Desc') {
                                     echo "<span class='badge badge-danger'>OFFLINE for ";
                                     echo (time()-strtotime($row['ping'])>24*60*60) ? floor(abs(time() - strtotime($row['ping'])) / 86400) . " days, " . date("H:i",time()-strtotime($row['ping'])) : date("H:i",time()-strtotime($row['ping']));
                                     echo " (Hr:min)</span><br/>"; 
+                                } elseif(!is_check_day()){
+                                    echo "<span class='badge badge-secondary'>Not checking today</span><br/>";
                                 } else echo "<span class='badge badge-success'>Online</span><br/>";
                             ?>
                             Dashboard: <?php echo htmlspecialchars($row['ping']); ?><br/>

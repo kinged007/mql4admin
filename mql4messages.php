@@ -96,7 +96,7 @@ if( !empty($rows) ){
         if( isset($_GET['ignored']) && $row['ignore_account'] == 1) continue;
         if($row['account_type'] == 'demo' ) $demo_count++;
         if($row['ignore_account'] == '1' ) $ignore_count++;
-        if($row['ignore_account'] != '1' && date("N") < 6 && strtotime($row['ping']) < time()-(60*15)) {
+        if($row['ignore_account'] != '1' && is_check_day() && strtotime($row['ping']) < time()-(60*15)) {
             $offline_count++;
             $offline_rows[$row['vps_id']][] = $row;
         }
@@ -317,7 +317,7 @@ include BASE_PATH . '/includes/header.php';
                                 $style = "";
                                 $last_update = $row['ping'];
                                 if( $ignore != 1 ){
-                                    if( date("N") < 6 ){
+                                    if( is_check_day() ){
                                         if( strtotime($last_update) < time()-(60*5)){
                                             $style = " style='background-color:#FFCC99;'";
                                         }
@@ -334,6 +334,8 @@ include BASE_PATH . '/includes/header.php';
                                     echo "<span class='badge badge-danger'>OFFLINE for ";
                                     echo (time()-strtotime($row['ping'])>24*60*60) ? floor(abs(time() - strtotime($row['ping'])) / 86400) . " days, " . date("H:i",time()-strtotime($row['ping'])) : date("H:i",time()-strtotime($row['ping']));
                                     echo " (Hr:min)</span><br/>"; 
+                                } elseif(!is_check_day()){
+                                    echo "<span class='badge badge-secondary'>Not checking today</span><br/>";
                                 } else echo "<span class='badge badge-success'>Online</span><br/>";
                             ?>
                             Dashboard: <?php echo htmlspecialchars($row['ping']); ?><br/>
