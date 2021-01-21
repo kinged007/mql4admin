@@ -60,7 +60,7 @@ if( !empty($rows) ){
     foreach ($rows as $row) {
         if( $row['ignore_account'] == 1) continue;
         if( $row['account_type'] == 'demo' ) $demo_count++;
-        if( date("N") < 8 ) {   // only offline during weekdays
+        if( is_check_day() ) {   // only offline during weekdays
             $offline_rows[$row['user_id']][$row['vps_id']][] = $row;
             $data_rows[] = $row['id'];
         }

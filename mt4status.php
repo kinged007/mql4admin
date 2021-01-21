@@ -86,7 +86,7 @@ if( !empty($rows) ){
         if( $row['account_type']=="demo" ) $demo_accounts[$row['account'].$row['server']] = $row;
         else $trading_accounts[$row['account'].$row['server']] = $row;
 
-        if( date("N") < 6 && strtotime($row['ping']) < time()-(60*15)){
+        if( is_check_day() && strtotime($row['ping']) < time()-(60*15)){
             $inactive_count++;
             $inactive_accounts[] = $row;
             continue;
@@ -235,7 +235,7 @@ include BASE_PATH . '/includes/header.php';
                                 $last_update = $row['ping'];
                                 $ignore = $row['ignore_account'];
                                 if( $ignore != 1 ){
-                                    if( date("N") < 6 ){
+                                    if( is_check_day() ){
                                         if( strtotime($last_update) < time()-(60*5)){
                                             $style = " style='background-color:#FFCC99;'";
                                         }
@@ -252,6 +252,8 @@ include BASE_PATH . '/includes/header.php';
                                     echo "<span class='badge badge-danger'>OFFLINE for ";
                                     echo (time()-strtotime($row['ping'])>24*60*60) ? floor(abs(time() - strtotime($row['ping'])) / 86400) . " days, " . date("H:i",time()-strtotime($row['ping'])) : date("H:i",time()-strtotime($row['ping']));
                                     echo " (Hr:min)</span><br/>"; 
+                                } elseif(!is_check_day()){
+                                    echo "<span class='badge badge-secondary'>Not checking today</span><br/>";
                                 } else echo "<span class='badge badge-success'>Online</span><br/>";
                             ?>
                             Dashboard: <?php echo htmlspecialchars($row['ping']); ?><br/>

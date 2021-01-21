@@ -22,6 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST')
 // $db->setTrace(true);
     $data_to_update['updated_at'] = date('Y-m-d H:i:s');
 
+    unset($data_to_update['active_mon']); // TODO - allow checking of server on specific days instead of mon-sun
+
     $db = getDbInstance();
 
     $sub_data_to_update['ignore_account'] = isset($data_to_update['ignore_account']) ? 1 : 0;
