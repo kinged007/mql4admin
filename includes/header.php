@@ -12,7 +12,7 @@
         <title>Administrator</title>
 
         <!-- Bootstrap Core CSS -->
-        <link  rel="stylesheet" href="assets/css/bootstrap.min.css"/>
+        <link  rel="stylesheet" href="assets/css/bootstrap_superhero.min.css"/>
 
         <!-- MetisMenu CSS -->
         <link href="assets/js/metisMenu/metisMenu.min.css" rel="stylesheet">
