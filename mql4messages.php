@@ -13,7 +13,7 @@ $filter_col = filter_input(INPUT_GET, 'filter_col');
 $order_by = filter_input(INPUT_GET, 'order_by');
 
 // Per page limit for pagination.
-$pagelimit = 15;
+$pagelimit = 50;
 
 // Get current page.
 $page = filter_input(INPUT_GET, 'page');
@@ -86,33 +86,56 @@ $db->pageLimit = $pagelimit;
 $rows = $db->arraybuilder()->paginate('mql4message', $page, $select);
 $total_pages = $db->totalPages;
 
-$data_rows = $demo_rows = $offline_rows = array();
+$user_accounts_raw = $db->getValue("mql4message", "name", null);
+
+$data_rows = $demo_rows = $offline_rows = $accounts  = array();
 $ignore_count = $demo_count = $terminal_count = $vps_count = $offline_count = 0;
 
 // organise by VPS
 if( !empty($rows) ){
     foreach ($rows as $row) {
+        if( isset($_GET['account']) && !empty($_GET['account'])){
+            if($row['name'] != $_GET['account']) continue;
+        }        
+
+        if( is_check_day() && strtotime($row['ping']) < time()-(60*15) ){
+            $online_status = false;
+        } else {
+            $online_status = true;
+        }
+
+        if( isset($_GET['online_status'])){
+            if( $_GET['online_status'] == "offline" && $online_status ) continue;
+            if( $_GET['online_status'] == "online" && !$online_status ) continue;
+        }
+
         $row['equity_perc'] = $row['balance'] > 0 ? ($row['profit']/$row['balance'])*100 : 0;
         if( isset($_GET['ignored']) && $row['ignore_account'] == 1) continue;
         if($row['account_type'] == 'demo' ) $demo_count++;
         if($row['ignore_account'] == '1' ) $ignore_count++;
-        if($row['ignore_account'] != '1' && is_check_day() && strtotime($row['ping']) < time()-(60*15)) {
+        if($row['ignore_account'] != '1' && !$online_status ) {
             $offline_count++;
             $offline_rows[$row['vps_id']][] = $row;
         }
 
         if(!isset($data_rows[$row['vps_id']])) $vps_count++;
+        
+        //$rows[$row['account'].$row['server']]['vps'][] = $row['vps_id'];
 
         $data_rows[$row['vps_id']][] = $row;
 
         $terminal_count++;
     }
+
+    $accounts = array_unique($user_accounts_raw);
+    sort($accounts, SORT_STRING | SORT_NATURAL);
+
     unset($rows);
 
 }
 
 if( isset($_GET['offline']) ){
-    $data_rows = $offline_rows;
+    //$data_rows = $offline_rows;
 }
 
 include BASE_PATH . '/includes/header.php';
@@ -132,52 +155,82 @@ include BASE_PATH . '/includes/header.php';
     <?php include BASE_PATH . '/includes/flash_messages.php';?>
 
     <!-- Filters -->
-    <div class="well text-center filter-form">
-        <form class="form form-inline" action="">
-            <label for="input_search">Search</label>
-            <input type="text" class="form-control" id="input_search" name="search_string" value="<?php echo htmlspecialchars($search_string, ENT_QUOTES, 'UTF-8'); ?>">
-            <label for="input_order">Order By</label>
-            <select name="filter_col" class="form-control">
-                <?php
-                    foreach ($Mql4Messages->setOrderingValues() as $opt_value => $opt_name):
-                    	($order_by === $opt_value) ? $selected = 'selected' : $selected = '';
-                    	echo ' <option value="' . $opt_value . '" ' . $selected . '>' . $opt_name . '</option>';
-                    endforeach;
-                    ?>
-                                </select>
-                                <select name="order_by" class="form-control" id="input_order">
-                                    <option value="Asc" <?php
-                    if ($order_by == 'Asc') {
-                    	echo 'selected';
-                    }
-                    ?> >Asc</option>
-                                    <option value="Desc" <?php
-                    if ($order_by == 'Desc') {
-                    	echo 'selected';
-                    }
-                    ?>>Desc</option>
-            </select>
-            
+    <div class="well bs-component filter-form">
+        <button data-toggle="collapse" data-target="#filters" class="btn btn-primary">Show filters</button>
+        <form class="form form-horizontal collapse" id="filters" action="">
+            <div class="form-group">
+                <label for="input_search" class="col-lg-2 control-label">Search</label>
+                <div class="col-lg-10">
+                  <input type="text" class="form-control" id="input_search" name="search_string" value="<?php echo htmlspecialchars($search_string, ENT_QUOTES, 'UTF-8'); ?>">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="input_order" class="col-lg-2 control-label">Order By</label>
+                <div class="col-lg-10">
+                    <select name="filter_col" class="form-control">
+                        <?php
+                            foreach ($Mql4Messages->setOrderingValues() as $opt_value => $opt_name):
+                            ($order_by === $opt_value) ? $selected = 'selected' : $selected = '';
+                            echo ' <option value="' . $opt_value . '" ' . $selected . '>' . $opt_name . '</option>';
+                            endforeach;
+                        ?>
+                    </select>                
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="input_order" class="col-lg-2 control-label">Filter by Account</label>
+                <div class="col-lg-10">
+                    <select name="account" class="form-control" id="input_order">
+                        <option value="">--</option>
+                        <?php if(!empty($accounts)) : foreach( $accounts as $account ) : ?>
+                            <option value="<?php echo $account; ?>" <?php
+                                if (isset($_GET['account']) && $_GET['account'] == $account) {
+                                    echo 'selected';
+                                }
+                                ?> ><?php echo $account; ?>
+                                
+                            </option>    
+                        <?php endforeach; endif; ?>
+                    </select>            
 
-            <div class="input-group">
-              <span class="input-group-addon">
-                <input type="checkbox" aria-label="demo" name="demo" <?php if(isset($_GET['demo'])) echo "checked='checked'"; ?>>
-              </span>
-              <span class="form-control" aria-label="demo">Show only Real Accounts</span>
-            </div><!-- /input-group -->   
-            <div class="input-group">
-              <span class="input-group-addon">
-                <input type="checkbox" aria-label="ignored" name="ignored" <?php if(isset($_GET['ignored'])) echo "checked='checked'"; ?>>
-              </span>
-              <span class="form-control" aria-label="demo">Do not show Ignored Terminals</span>
-            </div><!-- /input-group -->       
-            <div class="input-group">
-              <span class="input-group-addon">
-                <input type="checkbox" aria-label="offline" name="offline" <?php if(isset($_GET['offline'])) echo "checked='checked'"; ?>>
-              </span>
-              <span class="form-control" aria-label="demo">Show only Offline</span>
-            </div><!-- /input-group -->       
+                </div>
+            </div>
+            <div class="form-group">          
+                <label for="demo" class="col-lg-2 control-label">Show only Real Accounts</label>
+                <div class="col-lg-10">
+                    <input type="checkbox" class="checkbox" aria-label="demo" name="demo" <?php if(isset($_GET['demo'])) echo "checked='checked'"; ?>>            
+                </div>
+            </div>
+            <div class="form-group">          
+                <label for="demo" class="col-lg-2 control-label">Do not show ignored</label>
+                <div class="col-lg-10">
+                    <input type="checkbox" aria-label="ignored" name="ignored" <?php if(isset($_GET['ignored'])) echo "checked='checked'"; ?>>          
+                </div>
+            </div> 
+            <div class="form-group">          
+                <label for="demo" class="col-lg-2 control-label">Show only</label>
+                <div class="col-lg-10">
+                    <div class="radio">
+                        <label>
+                          <input type="radio" name="online_status" id="online_status" value="all" <?php if((isset($_GET['online_status']) && $_GET['online_status'] == "all") || !isset($_GET['online_status']))  echo "checked='checked'"; ?>>
+                          All
+                        </label>
+                    </div>                    
+                    <div class="radio">
+                        <label>
+                          <input type="radio" name="online_status" id="online_status" value="offline" <?php if(isset($_GET['online_status']) && $_GET['online_status'] == "offline") echo "checked='checked'"; ?>>
+                          Offline
+                        </label>
+                    </div>
+                    <div class="radio">
+                        <label>
+                          <input type="radio" name="online_status" id="online_status" value="online" <?php if(isset($_GET['online_status']) && $_GET['online_status'] == "online") echo "checked='checked'"; ?>>
+                          Online
+                        </label>
+                    </div>
 
+                </div>
+            </div> 
             <input type="submit" value="Search" class="btn btn-primary">            
         </form>
           
@@ -196,7 +249,7 @@ include BASE_PATH . '/includes/header.php';
                 if( isset($_GET['order_by']      ) ) $query["order_by"] = $_GET['order_by'];
                 if( isset($_GET['demo']          ) ) $query["demo"] = $_GET['demo'];
                 if( isset($_GET['ignored']          ) ) $query["ignored"] = $_GET['ignored'];
-                if( isset($_GET['offline']          ) ) $query["offline"] = $_GET['offline'];
+                if( isset($_GET['online_status']          ) ) $query["online_status"] = $_GET['online_status'];
                 if( !empty($query) ){
                     foreach ($query as $key => $value) {
                         echo "<input type='hidden' name='{$key}' value='{$value}'/>";
@@ -213,11 +266,10 @@ include BASE_PATH . '/includes/header.php';
                  
             </div>
             <div class="pull-right float-right text-right">
-                <strong>Server Time:</strong> <span class="badge badge-success"><?= date('Y-m-d H:i:s'); ?></span><br/>
-                New York: <span class="badge badge-primary"><?= date('Y-m-d H:i:s',strtotime('UTC -5 hours')); ?></span><br/>
-                London: <span class="badge badge-warning"><?= date('Y-m-d H:i:s',strtotime('UTC')); ?></span><br/>
-                Hong Kong: <span class="badge badge-info"><?= date('Y-m-d H:i:s',strtotime('UTC +8 hours')); ?></span><br/>
-
+                <strong>Server Time:</strong> <span class="badge badge-success"><?= date('Y-m-d H:i'); ?></span><br/>
+                New York: <span class="badge badge-primary"><?= date('Y-m-d H:i',strtotime('UTC -5 hours')); ?></span><br/>
+                London: <span class="badge badge-warning"><?= date('Y-m-d H:i',strtotime('UTC')); ?></span><br/>
+                Hong Kong: <span class="badge badge-info"><?= date('Y-m-d H:i',strtotime('UTC +8 hours')); ?></span><br/>            
             </div>
             <?php
                 if( $autoupdate ){
@@ -231,7 +283,7 @@ include BASE_PATH . '/includes/header.php';
 
     <!-- //Filters -->
     <?php if(!empty($data_rows)) : ?>
-        Showing <span class="badge badge-success"><?php echo $terminal_count; ?></span> terminals over <span class="badge badge-warning"><?php echo $vps_count; ?></span> VPS machines. <span class="badge badge-danger"><?php echo $offline_count; ?></span> terminals are offline.<br/>
+        Showing <span class="badge badge-success"><?php echo $terminal_count; ?></span> terminals over <span class="badge badge-warning"><?php echo $vps_count; ?></span> machines. <span class="badge badge-danger"><?php echo $offline_count; ?></span> terminals are offline.<br/>
         <?php
             if( $demo_count > 0 || $ignore_count > 0 ) echo "Includes ";
             if( $demo_count > 0 ) echo '<span class="badge badge-info">'.$demo_count . "</span> demos" . ($ignore_count>0?", and ":".");
@@ -257,23 +309,23 @@ include BASE_PATH . '/includes/header.php';
                         if($row['account_type'] == 'demo' )  $demo = true; else $demo = false; 
                         $ignore = $row['ignore_account'];
                     ?>
-                    <tr style="<?php 
-                            echo ($demo) ? "background-color:#CCFFFA;font-style:italic;": "";
-                            echo ($ignore==1) ? "color:#dcd;": "";
-                        ?>">    
+                    <tr class="<?php
+                        echo ($demo) ? "text-info" : "";
+                        echo ($ignore==1) ? " text-warning": "";
+                    ?>">    
                         <?php
                             
                             $dd_color = "none";
                             $badge = "secondary";
-                            if( $row['equity'] < $row['balance']*0.8 ){
+                            if( $row['equity'] < $row['balance']*0.9 ){
                                 // $dd_color = "#FFCC00";
                                 $badge = "warning";
                             }
-                            if( $row['equity'] < $row['balance']*0.7 ){
+                            if( $row['equity'] < $row['balance']*0.8 ){
                                 $dd_color = "#FFCCCC";
                                 $badge = "warning";
                             }
-                            if( $row['equity'] < $row['balance']*0.6 ){
+                            if( $row['equity'] < $row['balance']*0.7 ){
                                 $dd_color = "#FF9999";
                                 $badge = "danger";
                             }
@@ -283,8 +335,8 @@ include BASE_PATH . '/includes/header.php';
                         ?>
                         <td>
                             <strong><?php echo $row['friendly_name']; ?></strong><br/>
-                            (<?php echo htmlspecialchars($row['account']); ?>, <?php echo htmlspecialchars($row['server']); ?>) <br/>
-                            <?php echo htmlspecialchars($row['name']); ?>
+                            (<a href="/mql4messages.php?search_string=<?php echo htmlspecialchars($row['account']); ?>"><?php echo htmlspecialchars($row['account']); ?></a>, <?php echo htmlspecialchars($row['server']); ?>) <br/>
+                            <?php echo htmlspecialchars($row['name']); ?> <br/>                         
                         </td>
                         <td style="background-color: <?=$dd_color;?>">
                             <span class="badge badge-primary">Balance</span> <?php echo number_format($current_balance,2); ?><br/>
@@ -319,11 +371,11 @@ include BASE_PATH . '/includes/header.php';
                                 if( $ignore != 1 ){
                                     if( is_check_day() ){
                                         if( strtotime($last_update) < time()-(60*5)){
-                                            $style = " style='background-color:#FFCC99;'";
+                                            $style = " class='warning'";
                                         }
 
                                         if( strtotime($last_update) < time()-(60*15)){
-                                            $style = " style='background-color:#FF9999;'";
+                                            $style = " class='danger'";
                                         }
                                     }
                                 }
@@ -346,7 +398,7 @@ include BASE_PATH . '/includes/header.php';
                                 else $t = ""; // mt4 is before server: -
                                 echo "({$t}".round((strtotime($row['timestamp']) - strtotime($last_update) )/60/60)."hrs)";
                             ?>
-                            <?php echo ($ignore==1) ? "<br/><span class='small text-muted'>(ignored)</span>":""; ?>
+                            <?php echo ($ignore==1) ? "<br/><span class=''>(-+- ignored -+- )</span>":""; ?>
 
                         </td>                
                         <td>

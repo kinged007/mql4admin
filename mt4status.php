@@ -153,10 +153,10 @@ include BASE_PATH . '/includes/header.php';
         </form>        
 
         <div class="pull-right float-right text-right">
-            <strong>Server Time:</strong> <span class="badge badge-success"><?= date('Y-m-d H:i:s'); ?></span><br/>
-            New York: <span class="badge badge-primary"><?= date('Y-m-d H:i:s',strtotime('UTC -5 hours')); ?></span><br/>
-            London: <span class="badge badge-warning"><?= date('Y-m-d H:i:s',strtotime('UTC')); ?></span><br/>
-            Hong Kong: <span class="badge badge-info"><?= date('Y-m-d H:i:s',strtotime('UTC +8 hours')); ?></span><br/>        </div>
+            <strong>Server Time:</strong> <span class="badge badge-success"><?= date('Y-m-d H:i'); ?></span><br/>
+            New York: <span class="badge badge-primary"><?= date('Y-m-d H:i',strtotime('UTC -5 hours')); ?></span><br/>
+            London: <span class="badge badge-warning"><?= date('Y-m-d H:i',strtotime('UTC')); ?></span><br/>
+            Hong Kong: <span class="badge badge-info"><?= date('Y-m-d H:i',strtotime('UTC +8 hours')); ?></span><br/>        </div>
     </div>    
     <br/>
 
@@ -189,15 +189,15 @@ include BASE_PATH . '/includes/header.php';
                     <?php
                         $dd_color = "none";
                         $badge = "success";
-                        if( $row['equity'] < $row['balance']*0.8 ){
+                        if( $row['equity'] < $row['balance']*0.9 ){
                             // $dd_color = "#FFCC00";
                             $badge = "warning";
                         }
-                        if( $row['equity'] < $row['balance']*0.7 ){
+                        if( $row['equity'] < $row['balance']*0.8 ){
                             $dd_color = "#FFCCCC";
                             $badge = "warning";
                         }
-                        if( $row['equity'] < $row['balance']*0.6 ){
+                        if( $row['equity'] < $row['balance']*0.7 ){
                             $dd_color = "#FF9999";
                             $badge = "danger";
                         }
@@ -205,11 +205,14 @@ include BASE_PATH . '/includes/header.php';
                         $current_equity = (is_numeric($row['equity']))?htmlspecialchars($row['equity']):0;
 
                     ?>                    
-                    <tr<?= ($demo) ? " style='background-color:#CCFFFA;font-style:italic;'" : ""; ?>>    
-                        <td><?php echo $row['friendly_name']; ?> (<?php echo htmlspecialchars($row['account']); ?>) 
+                    <tr class="<?php
+                        echo ($demo) ? "text-info" : "";
+                    ?>">    
+                        <td><?php echo $row['friendly_name']; ?> (<?php echo htmlspecialchars($row['account']); ?>) <br/>
+                            <span class="badge badge-<?php echo $row['account_type']=="real" ? "primary":($row['account_type']=="demo"?"secondary":"warning");?>"><?php echo ucfirst($row['account_type']); ?> Account</span><br/>
                         </td>
                         <td><?php echo htmlspecialchars($row['vps_id']); ?></td>
-                        <td style="background-color: <?=$dd_color;?>">
+                        <td class="<?= $badge != "success" ? $badge : ""; ?>">
 
                             <?php
                                 $dd = $current_balance > 0 ? ($current_balance-$current_equity)/$current_balance*100 : 0;
@@ -237,11 +240,11 @@ include BASE_PATH . '/includes/header.php';
                                 if( $ignore != 1 ){
                                     if( is_check_day() ){
                                         if( strtotime($last_update) < time()-(60*5)){
-                                            $style = " style='background-color:#FFCC99;'";
+                                            $style = " class='warning'";
                                         }
 
                                         if( strtotime($last_update) < time()-(60*15)){
-                                            $style = " style='background-color:#FF9999;'";
+                                            $style = " class='danger'";
                                         }
                                     }
                                 }
@@ -282,20 +285,20 @@ include BASE_PATH . '/includes/header.php';
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($trading_accounts as $row): ?>
+                <?php $row = array(); foreach ($trading_accounts as $row): ?>
                     <?php if($row['account_type'] == 'demo' )  $demo = true; else $demo = false; ?>
                     <?php
                         $dd_color = "none";
                         $badge = "success";
-                        if( $row['equity'] < $row['balance']*0.8 ){
+                        if( $row['equity'] < $row['balance']*0.9 ){
                             // $dd_color = "#FFCC00";
                             $badge = "warning";
                         }
-                        if( $row['equity'] < $row['balance']*0.7 ){
+                        if( $row['equity'] < $row['balance']*0.8 ){
                             $dd_color = "#FFCCCC";
                             $badge = "warning";
                         }
-                        if( $row['equity'] < $row['balance']*0.6 ){
+                        if( $row['equity'] < $row['balance']*0.7 ){
                             $dd_color = "#FF9999";
                             $badge = "danger";
                         }
@@ -303,19 +306,19 @@ include BASE_PATH . '/includes/header.php';
                         $current_equity = (is_numeric($row['equity']))?htmlspecialchars($row['equity']):0;
 
                     ?>                    
-                    <tr<?= ($demo) ? " style='background-color:#CCFFFA;font-style:italic;'" : ""; ?>>    
-
+                    <tr class="<?php
+                        echo ($demo) ? "text-info" : "";
+                    ?>">  
                         <td><strong><?php echo $row['friendly_name']; ?></strong><br/>
-                            (<?php echo htmlspecialchars($row['server']); ?>)
+                            (<?php echo htmlspecialchars($row['server']); ?>)<br/>
+                            <span class="badge badge-<?php echo $row['account_type']=="real" ? "primary":($row['account_type']=="demo"?"secondary":"warning");?>"><?php echo ucfirst($row['account_type']); ?> Account</span><br/>
                         </td>
                         <td>
                             <?php echo $row['currency']; ?><br/>
                             1:<?php echo $row['leverage']; ?><br/>
                             <span class="badge badge-<?php echo $row['trade_permitted']==1 ? "success":"danger";?>">Trade <?php echo $row['trade_permitted']==1?"":"NOT"; ?> Permitted</span><br/>
-                            <span class="badge badge-<?php echo $row['account_type']=="real" ? "primary":($row['account_type']=="demo"?"secondary":"warning");?>"><?php echo ucfirst($row['account_type']); ?> Account</span><br/>
                         </td>
-                        <td style="background-color: <?=$dd_color;?>">
-
+                        <td class="<?= $badge != "success" ? $badge : ""; ?>">
                             <?php
                                 $dd = $current_balance > 0 ? ($current_balance-$current_equity)/$current_balance*100 : 0;
                             ?>                        
