@@ -338,7 +338,7 @@ include BASE_PATH . '/includes/header.php';
                             (<a href="/mql4messages.php?search_string=<?php echo htmlspecialchars($row['account']); ?>"><?php echo htmlspecialchars($row['account']); ?></a>, <?php echo htmlspecialchars($row['server']); ?>) <br/>
                             <?php echo htmlspecialchars($row['name']); ?> <br/>                         
                         </td>
-                        <td style="background-color: <?=$dd_color;?>">
+                        <td class="<?= $badge != "success" ? $badge : ""; ?>">
                             <span class="badge badge-primary">Balance</span> <?php echo number_format($current_balance,2); ?><br/>
                             <span class="badge badge-info">Profit</span> <?php echo number_format($current_profit,2); ?><br/>
                             <span class="badge badge-dark">Equity</span> <?php echo number_format($current_equity,2); ?> 
