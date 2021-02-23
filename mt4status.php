@@ -289,7 +289,7 @@ include BASE_PATH . '/includes/header.php';
                     <?php if($row['account_type'] == 'demo' )  $demo = true; else $demo = false; ?>
                     <?php
                         $dd_color = "none";
-                        $badge = "success";
+                        $badge = "secondary";
                         if( $row['equity'] < $row['balance']*0.9 ){
                             // $dd_color = "#FFCC00";
                             $badge = "warning";

@@ -330,7 +330,7 @@ include BASE_PATH . '/includes/header.php';
 
                         $ignore = $row['ignore_account'];
                         $dd_color = "none";
-                        $badge = "success";
+                        $badge = "secondary";
                         if( $row['equity'] < $row['balance']*0.9 ){
                             // $dd_color = "#FFCC00";
                             $badge = "warning";
@@ -365,7 +365,7 @@ include BASE_PATH . '/includes/header.php';
                                 }
                             ?></a>)</span>
                         </td>
-                        <td style="background-color: <?=$dd_color;?>">
+                        <td class="<?= $badge != "success" ? $badge : ""; ?>">
                             <span class="badge badge-primary">Balance</span> <?php echo number_format($current_balance,2); ?><br/>
                             <span class="badge badge-info">Profit</span> <?php echo number_format($current_profit,2); ?><br/>
                             <span class="badge badge-dark">Equity</span> <?php echo number_format($current_equity,2); ?> 
